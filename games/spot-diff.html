@@ -227,24 +227,25 @@ function shiftColor(hex) {
 function createShapeSVG(shape, color, size, rotation) {
     const s = size;
     const half = s / 2;
+    const cx = half, cy = half;
     let inner = '';
 
     switch(shape) {
         case 'circle':
-            inner = `<circle cx="${half}" cy="${half}" r="${half*0.85}" fill="${color}"/>`;
+            inner = `<circle cx="${cx}" cy="${cy}" r="${half*0.85}" fill="${color}"/>`;
             break;
         case 'square':
             const pad = s * 0.1;
             inner = `<rect x="${pad}" y="${pad}" width="${s-pad*2}" height="${s-pad*2}" rx="4" fill="${color}"/>`;
             break;
         case 'triangle':
-            inner = `<polygon points="${half},${s*0.08} ${s*0.92},${s*0.88} ${s*0.08},${s*0.88}" fill="${color}"/>`;
+            inner = `<polygon points="${cx},${s*0.08} ${s*0.92},${s*0.88} ${s*0.08},${s*0.88}" fill="${color}"/>`;
             break;
         case 'diamond':
-            inner = `<polygon points="${half},${s*0.05} ${s*0.92},${half} ${half},${s*0.95} ${s*0.08},${half}" fill="${color}"/>`;
+            inner = `<polygon points="${cx},${s*0.05} ${s*0.92},${cy} ${cx},${s*0.95} ${s*0.08},${cy}" fill="${color}"/>`;
             break;
         case 'star':
-            const cx = half, cy = half, or = half*0.85, ir = half*0.38;
+            const or = half*0.85, ir = half*0.38;
             let pts = '';
             for (let i = 0; i < 5; i++) {
                 const a1 = (i * 72 - 90) * Math.PI / 180;

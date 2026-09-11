@@ -29,10 +29,10 @@
         }
         .color-options {
             display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 12px; max-width: 360px; margin: 0 auto 24px;
+            gap: 10px; max-width: 360px; margin: 0 auto 24px;
         }
         .color-btn {
-            padding: 16px 8px; border: 2px solid rgba(255,255,255,0.1);
+            padding: 14px 8px; border: 2px solid rgba(255,255,255,0.1);
             border-radius: 14px; cursor: pointer; font-size: 15px;
             font-weight: 700; transition: all 0.2s; background: rgba(255,255,255,0.05);
             color: #ccc;
@@ -88,7 +88,7 @@
 </head>
 <body>
 <div class="app">
-    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <a class="back-link" href="../index.html">← 返回游戏列表</a>
     <div class="header">
         <h1>🧪 斯特鲁普测试</h1>
         <p>识别文字的显示颜色，忽略文字内容</p>
@@ -176,14 +176,8 @@ function nextRound() {
     void wordEl.offsetWidth;
     wordEl.classList.add('fade-in');
 
-    // Generate 4 options including the correct one
-    const options = [currentColor];
-    const others = COLORS.filter(c => c.name !== currentColor.name);
-    while (options.length < 4 && others.length > 0) {
-        const idx = Math.floor(Math.random() * others.length);
-        options.push(others.splice(idx, 1)[0]);
-    }
-    // Shuffle
+    // Generate 6 options: all colors shuffled
+    const options = [...COLORS];
     for (let i = options.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
@@ -195,8 +189,6 @@ function nextRound() {
         const btn = document.createElement('button');
         btn.className = 'color-btn';
         btn.textContent = opt.name;
-        btn.style.borderColor = opt.hex + '40';
-        btn.style.color = opt.hex;
         btn.onclick = () => handleAnswer(opt, btn);
         container.appendChild(btn);
     });
@@ -251,7 +243,7 @@ function endGame() {
 }
 
 function backToHome() {
-    location.href = '../brain-games.html';
+    location.href = '../index.html';
 }
 </script>
 </body>

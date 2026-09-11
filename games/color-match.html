@@ -17,46 +17,68 @@
         .back-link:hover { color: #00b894; }
         .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
         .header p { font-size: 13px; color: #888; }
-        .stats { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
-        .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+
+        .diff-row { display: flex; justify-content: center; gap: 8px; margin: 12px 0; }
+        .diff-btn {
+            padding: 6px 16px; border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px; background: rgba(255,255,255,0.04);
+            color: #888; font-size: 13px; cursor: pointer; transition: all 0.2s;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .diff-btn:hover { border-color: rgba(255,255,255,0.25); color: #ccc; }
+        .diff-btn.active { border-color: #00b894; background: rgba(0,184,148,0.12); color: #00b894; }
+
+        .stats { display: flex; justify-content: center; gap: 20px; margin: 12px 0; }
+        .stat-val { font-size: 26px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
         .stat-val.accent { color: #00b894; }
+        .stat-val.warn { color: #fdcb6e; }
+        .stat-val.danger { color: #ff6b6b; }
         .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
 
-        .hint { font-size: 14px; color: #888; margin-bottom: 16px; min-height: 20px; }
+        .hint { font-size: 14px; color: #888; margin-bottom: 10px; min-height: 20px; }
 
         .match-area {
-            min-height: 200px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; margin: 20px 0;
-            animation: fadeIn 0.2s ease;
+            min-height: 180px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; margin: 16px 0;
         }
         .color-word {
             font-size: 64px; font-weight: 900; letter-spacing: 4px;
-            margin-bottom: 12px; text-shadow: 0 0 40px rgba(0,0,0,0.3);
+            margin-bottom: 8px; text-shadow: 0 0 40px rgba(0,0,0,0.3);
             transition: all 0.15s;
         }
-        .match-question {
-            font-size: 16px; color: #888; margin-top: 8px;
-        }
+        .match-question { font-size: 14px; color: #666; margin-top: 4px; }
 
-        .feedback {
-            font-size: 20px; font-weight: 700; margin-top: 12px;
-            min-height: 28px; transition: all 0.2s;
+        .timer-wrap {
+            width: 280px; max-width: 70vw; margin: 8px auto;
+            position: relative;
         }
-        .feedback.correct { color: #55efc4; }
-        .feedback.wrong { color: #ff6b6b; }
+        .timer-bar-bg {
+            width: 100%; height: 6px; border-radius: 3px;
+            background: rgba(255,255,255,0.06); overflow: hidden;
+        }
+        .timer-bar-fill {
+            height: 100%; border-radius: 3px;
+            background: linear-gradient(90deg, #00b894, #55efc4);
+            transition: width 0.1s linear;
+        }
+        .timer-bar-fill.warn { background: linear-gradient(90deg, #fdcb6e, #ffeaa7); }
+        .timer-bar-fill.danger { background: linear-gradient(90deg, #ff6b6b, #fab1a0); }
+        .timer-text {
+            position: absolute; right: 0; top: -18px;
+            font-size: 13px; font-weight: 700; color: #888;
+            font-variant-numeric: tabular-nums;
+        }
 
         .progress-bar {
-            width: 300px; max-width: 80vw; height: 4px; margin: 12px auto;
-            background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
+            width: 280px; max-width: 70vw; height: 3px; margin: 6px auto;
+            background: rgba(255,255,255,0.04); border-radius: 2px; overflow: hidden;
         }
         .progress-fill {
-            height: 100%; background: linear-gradient(90deg, #00b894, #55efc4);
+            height: 100%; background: rgba(0,184,148,0.4);
             border-radius: 2px; transition: width 0.3s;
         }
 
-        .controls-row {
-            display: flex; justify-content: center; gap: 16px; margin: 20px 0;
-        }
+        .controls-row { display: flex; justify-content: center; gap: 16px; margin: 16px 0; }
         .match-btn {
             padding: 14px 40px; border: 2px solid rgba(255,255,255,0.12);
             border-radius: 14px; background: rgba(255,255,255,0.05);
@@ -70,7 +92,7 @@
         .match-btn.no { border-color: rgba(255,107,107,0.3); }
         .match-btn.no:hover { background: rgba(255,107,107,0.1); color: #ff6b6b; }
 
-        .actions { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+        .actions { display: flex; justify-content: center; gap: 12px; margin-top: 12px; }
         .btn {
             padding: 11px 32px; border: none; border-radius: 12px;
             font-size: 15px; font-weight: 700; cursor: pointer;
@@ -114,6 +136,12 @@
         <h1>🎨 颜色匹配</h1>
         <p>快速判断文字含义与显示颜色是否一致</p>
     </div>
+    <div class="diff-row">
+        <div class="diff-btn active" data-diff="easy" onclick="setDifficulty('easy')">简单</div>
+        <div class="diff-btn" data-diff="normal" onclick="setDifficulty('normal')">普通</div>
+        <div class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')">困难</div>
+        <div class="diff-btn" data-diff="extreme" onclick="setDifficulty('extreme')">极限</div>
+    </div>
     <div class="stats">
         <div><div class="stat-val accent" id="score">0</div><div class="stat-label">得分</div></div>
         <div><div class="stat-val" id="combo">0</div><div class="stat-label">连击</div></div>
@@ -124,6 +152,10 @@
     <div class="match-area" id="matchArea">
         <div class="color-word" id="colorWord" style="color:#888">准备</div>
         <div class="match-question">← 匹配 &nbsp;|&nbsp; 不匹配 →</div>
+    </div>
+    <div class="timer-wrap">
+        <div class="timer-text" id="timerText">0.0s</div>
+        <div class="timer-bar-bg"><div class="timer-bar-fill" id="timerFill" style="width:100%"></div></div>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     <div class="controls-row">
@@ -146,7 +178,7 @@
 </div>
 
 <script>
-const COLORS = [
+const COLORS_ALL = [
     { name: '红色', hex: '#e74c3c' },
     { name: '蓝色', hex: '#3498db' },
     { name: '绿色', hex: '#2ecc71' },
@@ -156,18 +188,46 @@ const COLORS = [
     { name: '粉色', hex: '#e91e63' },
     { name: '青色', hex: '#00bcd4' },
 ];
+// 极限模式额外颜色（与现有颜色相近，增加干扰）
+const COLORS_HARD = [
+    { name: '红色', hex: '#c0392b' },
+    { name: '蓝色', hex: '#2980b9' },
+    { name: '绿色', hex: '#27ae60' },
+    { name: '黄色', hex: '#f39c12' },
+    { name: '紫色', hex: '#8e44ad' },
+    { name: '橙色', hex: '#d35400' },
+    { name: '粉色', hex: '#c2185b' },
+    { name: '青色', hex: '#0097a7' },
+];
 
-let totalRounds = 30;
+const DIFFICULTY = {
+    easy:    { time: 5000, colorCount: 4, matchRate: 0.55, rounds: 20, label: '简单', useHardColors: false },
+    normal:  { time: 3000, colorCount: 6, matchRate: 0.50, rounds: 30, label: '普通', useHardColors: false },
+    hard:    { time: 2000, colorCount: 8, matchRate: 0.45, rounds: 30, label: '困难', useHardColors: false },
+    extreme: { time: 1500, colorCount: 8, matchRate: 0.35, rounds: 40, label: '极限', useHardColors: true },
+};
+
+let difficulty = 'easy';
+let totalRounds = 20;
+let timeLimit = 5000;
+let matchRate = 0.55;
+let useHardColors = false;
+let currentColors = COLORS_ALL.slice(0, 4);
+
 let currentRound = 0;
 let score = 0;
 let combo = 0;
 let maxCombo = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let timeoutCount = 0;
 let isPlaying = false;
 let answered = false;
 let currentMatch = false;
 let stimulusStart = 0;
 let reactionTimes = [];
-let best = parseInt(localStorage.getItem('colorMatchBest') || '0');
+let timerInterval = null;
+let bestScores = JSON.parse(localStorage.getItem('colorMatchBestAll') || '{}');
 
 const scoreEl = document.getElementById('score');
 const comboEl = document.getElementById('combo');
@@ -176,70 +236,111 @@ const avgTimeEl = document.getElementById('avgTime');
 const hintEl = document.getElementById('hint');
 const colorWordEl = document.getElementById('colorWord');
 const progressFill = document.getElementById('progressFill');
+const timerFill = document.getElementById('timerFill');
+const timerText = document.getElementById('timerText');
 const startBtn = document.getElementById('startBtn');
 
-function generateStimulus() {
-    // Pick a word (color name) and a display color
-    const wordIdx = Math.floor(Math.random() * COLORS.length);
-    let colorIdx;
+function setDifficulty(diff) {
+    if (isPlaying) return;
+    difficulty = diff;
+    const cfg = DIFFICULTY[diff];
+    timeLimit = cfg.time;
+    matchRate = cfg.matchRate;
+    totalRounds = cfg.rounds;
+    useHardColors = cfg.useHardColors;
+    currentColors = (useHardColors ? COLORS_ALL.concat(COLORS_HARD) : COLORS_ALL).slice(0, cfg.colorCount);
 
-    // 50% chance of match
-    currentMatch = Math.random() < 0.5;
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('active', b.dataset.diff === diff));
+    roundEl.textContent = `0/${totalRounds}`;
+    resetGame();
+}
+
+function generateStimulus() {
+    const wordIdx = Math.floor(Math.random() * currentColors.length);
+    let colorIdx;
+    currentMatch = Math.random() < matchRate;
     if (currentMatch) {
         colorIdx = wordIdx;
     } else {
-        do {
-            colorIdx = Math.floor(Math.random() * COLORS.length);
-        } while (colorIdx === wordIdx);
+        do { colorIdx = Math.floor(Math.random() * currentColors.length); } while (colorIdx === wordIdx);
     }
+    return { word: currentColors[wordIdx].name, color: currentColors[colorIdx].hex };
+}
 
-    return { word: COLORS[wordIdx].name, color: COLORS[colorIdx].hex };
+function startTimer() {
+    clearInterval(timerInterval);
+    const start = Date.now();
+    timerFill.style.width = '100%';
+    timerFill.className = 'timer-bar-fill';
+
+    timerInterval = setInterval(() => {
+        const elapsed = Date.now() - start;
+        const remain = Math.max(0, timeLimit - elapsed);
+        const pct = (remain / timeLimit) * 100;
+        timerFill.style.width = pct + '%';
+        timerText.textContent = (remain / 1000).toFixed(1) + 's';
+
+        // Color changes
+        if (pct < 25) {
+            timerFill.className = 'timer-bar-fill danger';
+            timerText.style.color = '#ff6b6b';
+        } else if (pct < 50) {
+            timerFill.className = 'timer-bar-fill warn';
+            timerText.style.color = '#fdcb6e';
+        } else {
+            timerFill.className = 'timer-bar-fill';
+            timerText.style.color = '#888';
+        }
+
+        if (remain <= 0) {
+            clearInterval(timerInterval);
+            if (!answered && isPlaying) answer(null);
+        }
+    }, 50);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
 }
 
 function showStimulus() {
-    if (currentRound >= totalRounds) {
-        endGame();
-        return;
-    }
+    if (currentRound >= totalRounds) { endGame(); return; }
 
     answered = false;
     const s = generateStimulus();
     colorWordEl.textContent = s.word;
     colorWordEl.style.color = s.color;
     stimulusStart = Date.now();
-
-    // Auto-advance if no answer in 3 seconds
-    setTimeout(() => {
-        if (!answered && isPlaying) {
-            answer(null); // timeout
-        }
-    }, 3000);
+    startTimer();
 }
 
 function answer(isMatch) {
     if (!isPlaying || answered) return;
     answered = true;
+    stopTimer();
 
     const rt = Date.now() - stimulusStart;
     reactionTimes.push(rt);
 
     if (isMatch === null) {
-        // Timeout
+        timeoutCount++;
         combo = 0;
+        score = Math.max(0, score - 5);
         hintEl.textContent = '⏰ 超时！';
         hintEl.style.color = '#fdcb6e';
     } else if (isMatch === currentMatch) {
-        // Correct
+        correctCount++;
         combo++;
         if (combo > maxCombo) maxCombo = combo;
         const comboBonus = Math.min(combo, 10);
-        const timeBonus = Math.max(0, Math.floor((1000 - rt) / 10));
+        const timeBonus = Math.max(0, Math.floor((timeLimit - rt) / 50));
         const points = 10 + comboBonus + timeBonus;
         score += points;
         hintEl.textContent = `✓ +${points}分 · ${rt}ms`;
         hintEl.style.color = '#55efc4';
     } else {
-        // Wrong
+        wrongCount++;
         combo = 0;
         score = Math.max(0, score - 10);
         hintEl.textContent = `✗ 错误！${currentMatch ? '颜色是一致的' : '颜色不一致'}`;
@@ -253,92 +354,78 @@ function answer(isMatch) {
     progressFill.style.width = `${(currentRound / totalRounds) * 100}%`;
 
     const avg = reactionTimes.length > 0
-        ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
-        : 0;
+        ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) : 0;
     avgTimeEl.textContent = avg;
 
-    // Next stimulus after brief delay
-    setTimeout(() => {
-        if (isPlaying) showStimulus();
-    }, 400);
+    setTimeout(() => { if (isPlaying) showStimulus(); }, 350);
 }
 
 function startGame() {
-    currentRound = 0;
-    score = 0;
-    combo = 0;
-    maxCombo = 0;
-    reactionTimes = [];
-    isPlaying = true;
+    currentRound = 0; score = 0; combo = 0; maxCombo = 0;
+    correctCount = 0; wrongCount = 0; timeoutCount = 0;
+    reactionTimes = []; isPlaying = true;
 
-    scoreEl.textContent = '0';
-    comboEl.textContent = '0';
-    roundEl.textContent = '0/' + totalRounds;
-    avgTimeEl.textContent = '0';
+    scoreEl.textContent = '0'; comboEl.textContent = '0';
+    roundEl.textContent = `0/${totalRounds}`; avgTimeEl.textContent = '0';
     progressFill.style.width = '0%';
     hintEl.textContent = '文字含义与显示颜色是否一致？';
     hintEl.style.color = '#888';
-    startBtn.textContent = '进行中...';
-    startBtn.style.opacity = '0.5';
-    startBtn.style.pointerEvents = 'none';
+    timerFill.style.width = '100%'; timerFill.className = 'timer-bar-fill';
+    timerText.textContent = (timeLimit/1000).toFixed(1) + 's'; timerText.style.color = '#888';
+    startBtn.textContent = '进行中...'; startBtn.style.opacity = '0.5'; startBtn.style.pointerEvents = 'none';
+    document.querySelectorAll('.diff-btn').forEach(b => b.style.pointerEvents = 'none');
 
     showStimulus();
 }
 
 function endGame() {
-    isPlaying = false;
-    colorWordEl.textContent = '结束';
-    colorWordEl.style.color = '#888';
+    isPlaying = false; stopTimer();
+    colorWordEl.textContent = '结束'; colorWordEl.style.color = '#888';
+    timerFill.style.width = '0%'; timerText.textContent = '0.0s';
 
-    if (score > best) {
-        best = score;
-        localStorage.setItem('colorMatchBest', best);
+    const key = 'colorMatchBest_' + difficulty;
+    if (score > (bestScores[difficulty] || 0)) {
+        bestScores[difficulty] = score;
+        localStorage.setItem('colorMatchBestAll', JSON.stringify(bestScores));
     }
 
-    startBtn.textContent = '开始';
-    startBtn.style.opacity = '';
-    startBtn.style.pointerEvents = '';
+    startBtn.textContent = '开始'; startBtn.style.opacity = ''; startBtn.style.pointerEvents = '';
+    document.querySelectorAll('.diff-btn').forEach(b => b.style.pointerEvents = '');
 
     const avg = reactionTimes.length > 0
-        ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
-        : 0;
-    const correctCount = reactionTimes.length; // approximate
+        ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) : 0;
+    const accuracy = (correctCount + wrongCount + timeoutCount) > 0
+        ? Math.round((correctCount / (correctCount + wrongCount + timeoutCount)) * 100) : 0;
 
-    document.getElementById('resultTitle').textContent = avg < 500 ? '⚡ 闪电速度！' : avg < 800 ? '👍 反应不错！' : '💪 继续练习！';
+    document.getElementById('resultTitle').textContent =
+        accuracy >= 90 ? '⚡ 超凡表现！' : accuracy >= 70 ? '👍 反应不错！' : '💪 继续练习！';
     document.getElementById('resultScore').textContent = score;
     document.getElementById('resultDetail').innerHTML = `
-        平均反应: ${avg}ms · 最大连击: ${maxCombo}<br>
-        最高分: ${best}
+        正确率: ${accuracy}% · 平均反应: ${avg}ms · 最大连击: ${maxCombo}<br>
+        超时: ${timeoutCount} · 错误: ${wrongCount}<br>
+        难度: ${DIFFICULTY[difficulty].label} · 最高分: ${bestScores[difficulty] || 0}
     `;
     document.getElementById('resultOverlay').classList.add('show');
 }
 
-function closeResult() {
-    document.getElementById('resultOverlay').classList.remove('show');
-}
+function closeResult() { document.getElementById('resultOverlay').classList.remove('show'); }
 
 function resetGame() {
-    isPlaying = false;
-    currentRound = 0;
-    score = 0;
-    combo = 0;
-    reactionTimes = [];
+    isPlaying = false; stopTimer();
+    currentRound = 0; score = 0; combo = 0; reactionTimes = [];
 
-    scoreEl.textContent = '0';
-    comboEl.textContent = '0';
-    roundEl.textContent = '0/' + totalRounds;
-    avgTimeEl.textContent = '0';
+    scoreEl.textContent = '0'; comboEl.textContent = '0';
+    roundEl.textContent = `0/${totalRounds}`; avgTimeEl.textContent = '0';
     progressFill.style.width = '0%';
-    hintEl.textContent = '文字含义与显示颜色是否一致？';
-    hintEl.style.color = '#888';
-    colorWordEl.textContent = '准备';
-    colorWordEl.style.color = '#888';
-    startBtn.textContent = '开始';
-    startBtn.style.opacity = '';
-    startBtn.style.pointerEvents = '';
+    hintEl.textContent = '文字含义与显示颜色是否一致？'; hintEl.style.color = '#888';
+    colorWordEl.textContent = '准备'; colorWordEl.style.color = '#888';
+    timerFill.style.width = '100%'; timerFill.className = 'timer-bar-fill';
+    timerText.textContent = (timeLimit/1000).toFixed(1) + 's'; timerText.style.color = '#888';
+    startBtn.textContent = '开始'; startBtn.style.opacity = ''; startBtn.style.pointerEvents = '';
+    document.querySelectorAll('.diff-btn').forEach(b => b.style.pointerEvents = '');
 }
 
-// Keyboard support
+// Keyboard
 document.addEventListener('keydown', e => {
     if (!isPlaying) return;
     if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') answer(true);
