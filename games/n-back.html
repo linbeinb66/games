@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>N-Back 记忆训练 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 480px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #e17055; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
+        .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #e17055; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+
+        .n-back-select { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+        .n-btn {
+            padding: 6px 18px; border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px; background: rgba(255,255,255,0.05);
+            color: #999; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .n-btn:hover { background: rgba(255,255,255,0.1); color: #ccc; }
+        .n-btn.active { background: rgba(225,112,85,0.2); color: #e17055; border-color: rgba(225,112,85,0.5); }
+
+        .hint { font-size: 14px; color: #888; margin-bottom: 12px; min-height: 20px; }
+
+        .grid-container {
+            display: flex; justify-content: center; margin: 16px 0;
+        }
+        .n-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+            padding: 12px; background: rgba(255,255,255,0.03);
+            border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);
+        }
+        .n-cell {
+            width: 80px; height: 80px; border-radius: 12px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.2s;
+        }
+        .n-cell.lit {
+            background: rgba(225,112,85,0.4);
+            border-color: rgba(225,112,85,0.6);
+            box-shadow: 0 0 20px rgba(225,112,85,0.3);
+        }
+        .n-cell.match-flash {
+            background: rgba(85,239,196,0.3);
+            border-color: rgba(85,239,196,0.5);
+        }
+
+        .controls-row {
+            display: flex; justify-content: center; gap: 16px; margin: 20px 0;
+        }
+        .match-btn {
+            padding: 14px 36px; border: 2px solid rgba(255,255,255,0.12);
+            border-radius: 14px; background: rgba(255,255,255,0.05);
+            color: #ccc; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .match-btn:active { transform: scale(0.95); }
+        .match-btn.yes { border-color: rgba(85,239,196,0.3); }
+        .match-btn.yes:hover { background: rgba(85,239,196,0.1); color: #55efc4; }
+        .match-btn.yes.pressed { background: rgba(85,239,196,0.25); color: #55efc4; border-color: #55efc4; }
+        .match-btn.no { border-color: rgba(255,107,107,0.3); }
+        .match-btn.no:hover { background: rgba(255,107,107,0.1); color: #ff6b6b; }
+        .match-btn.no.pressed { background: rgba(255,107,107,0.25); color: #ff6b6b; border-color: #ff6b6b; }
+
+        .progress-bar {
+            width: 300px; max-width: 80vw; height: 4px; margin: 12px auto;
+            background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #e17055, #fd79a8);
+            border-radius: 2px; transition: width 0.3s;
+        }
+
+        .actions { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: #fff; box-shadow: 0 4px 15px rgba(225,112,85,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(225,112,85,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+
+        .result-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .result-overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .result-overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 24px; color: #fff; margin-bottom: 12px; }
+        .result-score { font-size: 48px; font-weight: 700; color: #e17055; margin: 12px 0; }
+        .result-detail { font-size: 14px; color: #888; margin-bottom: 20px; line-height: 1.8; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../index.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>🧩 N-Back 记忆</h1>
+        <p>判断当前刺激是否与N步前相同，训练工作记忆</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="nLevel">2</div><div class="stat-label">N 值</div></div>
+        <div><div class="stat-val" id="score">0</div><div class="stat-label">得分</div></div>
+        <div><div class="stat-val" id="round">0/20</div><div class="stat-label">进度</div></div>
+        <div><div class="stat-val" id="best">0</div><div class="stat-label">最高分</div></div>
+    </div>
+    <div class="n-back-select">
+        <span style="font-size:12px;color:#666;margin-right:4px;">N值</span>
+        <button class="n-btn" data-n="1" onclick="setN(1)">1-Back</button>
+        <button class="n-btn active" data-n="2" onclick="setN(2)">2-Back</button>
+        <button class="n-btn" data-n="3" onclick="setN(3)">3-Back</button>
+        <button class="n-btn" data-n="4" onclick="setN(4)">4-Back</button>
+    </div>
+    <div class="hint" id="hint">点击「开始」启动训练</div>
+    <div class="grid-container">
+        <div class="n-grid" id="nGrid">
+            <div class="n-cell" data-idx="0"></div>
+            <div class="n-cell" data-idx="1"></div>
+            <div class="n-cell" data-idx="2"></div>
+            <div class="n-cell" data-idx="3"></div>
+            <div class="n-cell" data-idx="4"></div>
+            <div class="n-cell" data-idx="5"></div>
+            <div class="n-cell" data-idx="6"></div>
+            <div class="n-cell" data-idx="7"></div>
+            <div class="n-cell" data-idx="8"></div>
+        </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="controls-row">
+        <button class="match-btn yes" id="btnMatch" onclick="playerAnswer(true)">✓ 匹配</button>
+        <button class="match-btn no" id="btnNoMatch" onclick="playerAnswer(false)">✗ 不匹配</button>
+    </div>
+    <div class="actions">
+        <button class="btn btn-secondary" onclick="resetGame()">重置</button>
+        <button class="btn btn-primary" id="startBtn" onclick="startGame()">开始</button>
+    </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2 id="resultTitle">训练结束</h2>
+        <div class="result-score" id="resultScore">0</div>
+        <div class="result-detail" id="resultDetail"></div>
+        <button class="btn btn-primary" onclick="closeResult(); startGame();">再来一次</button>
+    </div>
+</div>
+
+<script>
+let nValue = 2;
+let sequence = [];
+let currentIdx = 0;
+let totalRounds = 20;
+let isPlaying = false;
+let isShowingStimulus = false;
+let score = 0;
+let hits = 0, misses = 0, falseAlarms = 0, correctRejections = 0;
+let best = parseInt(localStorage.getItem('nBackBest') || '0');
+let answered = false;
+let stimulusTimer = null;
+
+const nLevelEl = document.getElementById('nLevel');
+const scoreEl = document.getElementById('score');
+const roundEl = document.getElementById('round');
+const bestEl = document.getElementById('best');
+const hintEl = document.getElementById('hint');
+const progressFill = document.getElementById('progressFill');
+const btnMatch = document.getElementById('btnMatch');
+const btnNoMatch = document.getElementById('btnNoMatch');
+const startBtn = document.getElementById('startBtn');
+const cells = document.querySelectorAll('.n-cell');
+
+bestEl.textContent = best;
+
+function setN(n) {
+    if (isPlaying) return;
+    nValue = n;
+    nLevelEl.textContent = n;
+    document.querySelectorAll('.n-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.n-btn[data-n="${n}"]`).classList.add('active');
+    resetGame();
+}
+
+function generateSequence() {
+    sequence = [];
+    // Ensure ~30% of positions are matches (same as N steps back)
+    for (let i = 0; i < totalRounds; i++) {
+        if (i >= nValue && Math.random() < 0.3) {
+            // Match: same position as N steps back
+            sequence.push(sequence[i - nValue]);
+        } else {
+            // Random position, but different from N back if possible
+            let pos;
+            do {
+                pos = Math.floor(Math.random() * 9);
+            } while (i >= nValue && pos === sequence[i - nValue] && Math.random() > 0.2);
+            sequence.push(pos);
+        }
+    }
+}
+
+function startGame() {
+    generateSequence();
+    currentIdx = 0;
+    score = 0;
+    hits = 0; misses = 0; falseAlarms = 0; correctRejections = 0;
+    isPlaying = true;
+    answered = false;
+
+    scoreEl.textContent = '0';
+    roundEl.textContent = `0/${totalRounds}`;
+    progressFill.style.width = '0%';
+    startBtn.textContent = '进行中...';
+    startBtn.style.opacity = '0.5';
+    startBtn.style.pointerEvents = 'none';
+
+    showNextStimulus();
+}
+
+function showNextStimulus() {
+    if (currentIdx >= totalRounds) {
+        endGame();
+        return;
+    }
+
+    answered = false;
+    isShowingStimulus = true;
+    btnMatch.classList.remove('pressed');
+    btnNoMatch.classList.remove('pressed');
+
+    // Clear all cells
+    cells.forEach(c => c.classList.remove('lit', 'match-flash'));
+
+    // Light up current position
+    const pos = sequence[currentIdx];
+    cells[pos].classList.add('lit');
+
+    // Show match indicator (for debugging/learning - subtle hint)
+    const isMatch = currentIdx >= nValue && sequence[currentIdx] === sequence[currentIdx - nValue];
+    hintEl.textContent = `第 ${currentIdx + 1} 轮 · 当前位置与 ${nValue} 步前${isMatch ? '相同' : '不同'}`;
+    hintEl.style.color = '#888';
+
+    // After display time, move to next
+    stimulusTimer = setTimeout(() => {
+        cells[pos].classList.remove('lit');
+        isShowingStimulus = false;
+
+        // Brief gap then next
+        setTimeout(() => {
+            currentIdx++;
+            roundEl.textContent = `${currentIdx}/${totalRounds}`;
+            progressFill.style.width = `${(currentIdx / totalRounds) * 100}%`;
+
+            if (!answered && currentIdx > 0) {
+                // Auto-judge: if it was a match and player didn't answer
+                const prevIdx = currentIdx - 1;
+                const wasMatch = prevIdx >= nValue && sequence[prevIdx] === sequence[prevIdx - nValue];
+                if (wasMatch) {
+                    misses++;
+                    hintEl.textContent = '⏰ 超时！那是匹配的';
+                    hintEl.style.color = '#ff6b6b';
+                }
+            }
+
+            showNextStimulus();
+        }, 500);
+    }, 1500);
+}
+
+function playerAnswer(isMatch) {
+    if (!isPlaying || answered || currentIdx < nValue) return;
+
+    answered = true;
+    const actualMatch = sequence[currentIdx] === sequence[currentIdx - nValue];
+
+    if (isMatch && actualMatch) {
+        // Hit
+        hits++;
+        score += 10;
+        btnMatch.classList.add('pressed');
+        hintEl.textContent = '✓ 正确！匹配命中';
+        hintEl.style.color = '#55efc4';
+        cells[sequence[currentIdx]].classList.add('match-flash');
+    } else if (!isMatch && !actualMatch) {
+        // Correct rejection
+        correctRejections++;
+        score += 5;
+        btnNoMatch.classList.add('pressed');
+        hintEl.textContent = '✓ 正确！非匹配排除';
+        hintEl.style.color = '#55efc4';
+    } else if (isMatch && !actualMatch) {
+        // False alarm
+        falseAlarms++;
+        score = Math.max(0, score - 5);
+        btnMatch.classList.add('pressed');
+        hintEl.textContent = '✗ 错误！那不是匹配';
+        hintEl.style.color = '#ff6b6b';
+    } else {
+        // Miss
+        misses++;
+        score = Math.max(0, score - 5);
+        btnNoMatch.classList.add('pressed');
+        hintEl.textContent = '✗ 遗漏！那是匹配的';
+        hintEl.style.color = '#ff6b6b';
+    }
+
+    scoreEl.textContent = score;
+}
+
+function endGame() {
+    isPlaying = false;
+    clearTimeout(stimulusTimer);
+    cells.forEach(c => c.classList.remove('lit', 'match-flash'));
+
+    if (score > best) {
+        best = score;
+        localStorage.setItem('nBackBest', best);
+        bestEl.textContent = best;
+    }
+
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+
+    // Calculate accuracy
+    const totalTargets = hits + misses;
+    const hitRate = totalTargets > 0 ? Math.round((hits / totalTargets) * 100) : 0;
+
+    document.getElementById('resultTitle').textContent = hits > misses ? '🎉 表现不错！' : '💪 继续努力！';
+    document.getElementById('resultScore').textContent = score;
+    document.getElementById('resultDetail').innerHTML = `
+        ${nValue}-Back 模式 · ${totalRounds} 轮<br>
+        命中: ${hits} · 遗漏: ${misses} · 误报: ${falseAlarms} · 正确排除: ${correctRejections}<br>
+        命中率: ${hitRate}%
+    `;
+    document.getElementById('resultOverlay').classList.add('show');
+}
+
+function closeResult() {
+    document.getElementById('resultOverlay').classList.remove('show');
+}
+
+function resetGame() {
+    isPlaying = false;
+    clearTimeout(stimulusTimer);
+    currentIdx = 0;
+    score = 0;
+    hits = 0; misses = 0; falseAlarms = 0; correctRejections = 0;
+    answered = false;
+
+    cells.forEach(c => c.classList.remove('lit', 'match-flash'));
+    scoreEl.textContent = '0';
+    roundEl.textContent = '0/' + totalRounds;
+    progressFill.style.width = '0%';
+    hintEl.textContent = '点击「开始」启动训练';
+    hintEl.style.color = '#888';
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+    btnMatch.classList.remove('pressed');
+    btnNoMatch.classList.remove('pressed');
+}
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+    if (!isPlaying) return;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') playerAnswer(true);
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') playerAnswer(false);
+});
+</script>
+</body>
+</html>

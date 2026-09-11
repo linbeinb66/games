@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>模式推理 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 520px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #00b894; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
+        .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #00b894; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+
+        .hint { font-size: 14px; color: #888; margin-bottom: 12px; min-height: 20px; }
+
+        .pattern-section { margin: 16px 0; }
+        .pattern-label { font-size: 12px; color: #666; letter-spacing: 2px; margin-bottom: 8px; }
+        .pattern-row {
+            display: flex; justify-content: center; align-items: center;
+            gap: 8px; flex-wrap: wrap; margin: 8px 0;
+        }
+        .pattern-cell {
+            width: 56px; height: 56px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: 700;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        .pattern-cell.mystery {
+            border: 2px dashed rgba(0,184,148,0.5);
+            background: rgba(0,184,148,0.08);
+            color: #00b894; font-size: 24px;
+        }
+
+        .arrow { font-size: 20px; color: #555; margin: 0 4px; }
+
+        .options-section { margin: 20px 0; }
+        .options-label { font-size: 12px; color: #666; letter-spacing: 2px; margin-bottom: 10px; }
+        .options-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .option-btn {
+            width: 64px; height: 64px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: 700;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
+            color: #ccc; cursor: pointer; transition: all 0.2s;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .option-btn:hover { border-color: rgba(0,184,148,0.4); background: rgba(0,184,148,0.08); color: #fff; }
+        .option-btn:active { transform: scale(0.92); }
+        .option-btn.correct { border-color: #55efc4; background: rgba(85,239,196,0.15); color: #55efc4; }
+        .option-btn.wrong { border-color: #ff6b6b; background: rgba(255,107,107,0.15); color: #ff6b6b; animation: shake 0.4s; }
+
+        .progress-bar {
+            width: 300px; max-width: 80vw; height: 4px; margin: 12px auto;
+            background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #00b894, #55efc4);
+            border-radius: 2px; transition: width 0.3s;
+        }
+
+        .actions { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: #fff; box-shadow: 0 4px 15px rgba(0,184,148,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(0,184,148,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+
+        .result-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .result-overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .result-overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 24px; color: #fff; margin-bottom: 12px; }
+        .result-score { font-size: 48px; font-weight: 700; color: #00b894; margin: 12px 0; }
+        .result-detail { font-size: 14px; color: #888; margin-bottom: 20px; line-height: 1.8; }
+
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../index.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>🧩 模式推理</h1>
+        <p>发现规律，选择下一个</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="score">0</div><div class="stat-label">得分</div></div>
+        <div><div class="stat-val" id="level">1</div><div class="stat-label">关卡</div></div>
+        <div><div class="stat-val" id="streak">0</div><div class="stat-label">连胜</div></div>
+        <div><div class="stat-val" id="lives">❤❤❤</div><div class="stat-label">生命</div></div>
+    </div>
+    <div class="hint" id="hint">找出规律，选择问号处的答案</div>
+    <div class="pattern-section">
+        <div class="pattern-label">观察规律</div>
+        <div class="pattern-row" id="patternRow"></div>
+    </div>
+    <div class="options-section">
+        <div class="options-label">选择答案</div>
+        <div class="options-row" id="optionsRow"></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="actions">
+        <button class="btn btn-secondary" onclick="resetGame()">重置</button>
+        <button class="btn btn-primary" id="startBtn" onclick="startGame()">开始</button>
+    </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2 id="resultTitle">训练结束</h2>
+        <div class="result-score" id="resultScore">0</div>
+        <div class="result-detail" id="resultDetail"></div>
+        <button class="btn btn-primary" onclick="closeResult(); startGame();">再来一次</button>
+    </div>
+</div>
+
+<script>
+// Pattern generators
+const SHAPES = ['●','■','▲','◆','★','⬡'];
+const COLORS = ['#e74c3c','#3498db','#2ecc71','#f1c40f','#9b59b6','#e67e22','#00bcd4','#e91e63'];
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Generate a pattern sequence and the answer
+function generatePattern(level) {
+    const type = randInt(0, Math.min(level, 5));
+    switch(type) {
+        case 0: return numberSequence(level);
+        case 1: return shapeSequence(level);
+        case 2: return colorSequence(level);
+        case 3: return alternatingSequence(level);
+        case 4: return arithmeticSequence(level);
+        case 5: return combinedSequence(level);
+        default: return numberSequence(level);
+    }
+}
+
+function numberSequence(level) {
+    const start = randInt(1, 10);
+    const step = randInt(1, level < 3 ? 3 : 5);
+    const seq = [];
+    for (let i = 0; i < 5; i++) seq.push(start + step * i);
+    return { display: seq.slice(0, 4), answer: seq[4], options: generateOptions(seq[4], 'number') };
+}
+
+function arithmeticSequence(level) {
+    // Sequence with changing differences: e.g. 1,2,4,7,11 (+1,+2,+3,+4)
+    const base = randInt(1, 5);
+    const startDiff = randInt(1, 3);
+    const seq = [base];
+    let diff = startDiff;
+    for (let i = 1; i < 5; i++) {
+        seq.push(seq[i-1] + diff);
+        diff += randInt(1, level < 3 ? 1 : 2);
+    }
+    return { display: seq.slice(0, 4), answer: seq[4], options: generateOptions(seq[4], 'number') };
+}
+
+function shapeSequence(level) {
+    // Rotate through shapes
+    const len = randInt(2, 3); // pattern length
+    const pattern = [];
+    for (let i = 0; i < len; i++) pattern.push(randPick(SHAPES));
+    const seq = [];
+    for (let i = 0; i < 5; i++) seq.push(pattern[i % len]);
+    return { display: seq.slice(0, 4), answer: seq[4], options: generateOptions(seq[4], 'shape') };
+}
+
+function colorSequence(level) {
+    const len = randInt(2, 3);
+    const pattern = [];
+    for (let i = 0; i < len; i++) pattern.push(randPick(COLORS));
+    const seq = [];
+    for (let i = 0; i < 5; i++) seq.push(pattern[i % len]);
+    return {
+        display: seq.slice(0, 4), answer: seq[4],
+        options: generateOptions(seq[4], 'color'),
+        colorMap: buildColorMap(seq)
+    };
+}
+
+function alternatingSequence(level) {
+    // Two interleaved sequences: e.g. 1,A,2,B,3
+    const numStart = randInt(1, 5);
+    const letters = ['A','B','C','D','E','F'];
+    const letterStart = randInt(0, 3);
+    const seq = [];
+    for (let i = 0; i < 5; i++) {
+        if (i % 2 === 0) seq.push(String(numStart + i / 2));
+        else seq.push(letters[letterStart + (i - 1) / 2]);
+    }
+    return { display: seq.slice(0, 4), answer: seq[4], options: generateOptions(seq[4], 'mixed') };
+}
+
+function combinedSequence(level) {
+    // Number + shape combo: numbers go up, shapes rotate
+    const start = randInt(1, 5);
+    const shapePattern = [randPick(SHAPES), randPick(SHAPES)];
+    const seq = [];
+    for (let i = 0; i < 5; i++) {
+        seq.push({ num: start + i, shape: shapePattern[i % 2] });
+    }
+    const answerObj = seq[4];
+    const wrongNums = generateOptions(answerObj.num, 'number').filter(o => o !== answerObj.num);
+    const wrongShapes = generateOptions(answerObj.shape, 'shape').filter(o => o !== answerObj.shape);
+    const options = [answerObj];
+    for (let i = 0; i < 3; i++) {
+        if (Math.random() < 0.5 && wrongNums.length > 0) {
+            options.push({ num: wrongNums.shift(), shape: answerObj.shape });
+        } else if (wrongShapes.length > 0) {
+            options.push({ num: answerObj.num, shape: wrongShapes.shift() });
+        } else {
+            options.push({ num: answerObj.num + randInt(1,3), shape: answerObj.shape });
+        }
+    }
+    // Shuffle
+    for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+    }
+    return { display: seq.slice(0, 4), answer: answerObj, options, type: 'combined' };
+}
+
+function buildColorMap(seq) {
+    const map = {};
+    seq.forEach((v, i) => { map[i] = v; });
+    return map;
+}
+
+function generateOptions(answer, type) {
+    const opts = [answer];
+    if (type === 'number' || type === 'mixed') {
+        const offsets = [-3,-2,-1,1,2,3,4,5];
+        const shuffled = offsets.sort(() => Math.random() - 0.5);
+        for (const off of shuffled) {
+            const val = answer + off;
+            if (val > 0 && !opts.includes(val) && opts.length < 4) opts.push(val);
+        }
+    } else if (type === 'shape') {
+        const others = SHAPES.filter(s => s !== answer);
+        const shuffled = others.sort(() => Math.random() - 0.5);
+        for (const s of shuffled) {
+            if (opts.length < 4) opts.push(s);
+        }
+    } else if (type === 'color') {
+        const others = COLORS.filter(c => c !== answer);
+        const shuffled = others.sort(() => Math.random() - 0.5);
+        for (const c of shuffled) {
+            if (opts.length < 4) opts.push(c);
+        }
+    }
+    // Shuffle
+    for (let i = opts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    return opts.slice(0, 4);
+}
+
+// Game state
+let currentLevel = 1;
+let score = 0;
+let streak = 0;
+let lives = 3;
+let isPlaying = false;
+let answered = false;
+let currentPattern = null;
+let totalAnswered = 0;
+let correctCount = 0;
+let best = parseInt(localStorage.getItem('patternReasonBest') || '0');
+
+const scoreEl = document.getElementById('score');
+const levelEl = document.getElementById('level');
+const streakEl = document.getElementById('streak');
+const livesEl = document.getElementById('lives');
+const hintEl = document.getElementById('hint');
+const patternRow = document.getElementById('patternRow');
+const optionsRow = document.getElementById('optionsRow');
+const progressFill = document.getElementById('progressFill');
+const startBtn = document.getElementById('startBtn');
+
+function renderPattern(pattern) {
+    patternRow.innerHTML = '';
+    const display = pattern.display;
+
+    display.forEach((item, i) => {
+        if (i > 0) {
+            const arrow = document.createElement('span');
+            arrow.className = 'arrow';
+            arrow.textContent = '→';
+            patternRow.appendChild(arrow);
+        }
+        const cell = document.createElement('div');
+        cell.className = 'pattern-cell';
+
+        if (pattern.type === 'combined') {
+            cell.textContent = item.shape + item.num;
+            cell.style.color = '#ccc';
+        } else if (pattern.colorMap && pattern.colorMap[i]) {
+            cell.textContent = '●';
+            cell.style.color = pattern.colorMap[i];
+            cell.style.fontSize = '32px';
+        } else if (typeof item === 'number') {
+            cell.textContent = item;
+        } else {
+            cell.textContent = item;
+        }
+        patternRow.appendChild(cell);
+    });
+
+    // Mystery cell
+    const arrow = document.createElement('span');
+    arrow.className = 'arrow';
+    arrow.textContent = '→';
+    patternRow.appendChild(arrow);
+
+    const mystery = document.createElement('div');
+    mystery.className = 'pattern-cell mystery';
+    mystery.textContent = '?';
+    patternRow.appendChild(mystery);
+}
+
+function renderOptions(pattern) {
+    optionsRow.innerHTML = '';
+    pattern.options.forEach(opt => {
+        const btn = document.createElement('div');
+        btn.className = 'option-btn';
+
+        if (pattern.type === 'combined') {
+            btn.textContent = opt.shape + opt.num;
+        } else if (pattern.colorMap || (typeof opt === 'string' && opt.startsWith('#'))) {
+            btn.textContent = '●';
+            btn.style.color = opt;
+            btn.style.fontSize = '32px';
+        } else {
+            btn.textContent = opt;
+        }
+
+        btn.onclick = () => selectAnswer(opt, btn, pattern);
+        optionsRow.appendChild(btn);
+    });
+}
+
+function selectAnswer(selected, btnEl, pattern) {
+    if (!isPlaying || answered) return;
+    answered = true;
+
+    const isCorrect = (pattern.type === 'combined')
+        ? selected.num === pattern.answer.num && selected.shape === pattern.answer.shape
+        : selected === pattern.answer;
+
+    totalAnswered++;
+
+    if (isCorrect) {
+        btnEl.classList.add('correct');
+        streak++;
+        correctCount++;
+        const streakBonus = Math.min(streak, 5);
+        const points = 10 * currentLevel + streakBonus * 5;
+        score += points;
+        hintEl.textContent = `✓ 正确！+${points}分`;
+        hintEl.style.color = '#55efc4';
+
+        if (streak > 0 && streak % 3 === 0) {
+            currentLevel++;
+            levelEl.textContent = currentLevel;
+        }
+    } else {
+        btnEl.classList.add('wrong');
+        streak = 0;
+        lives--;
+        score = Math.max(0, score - 5);
+        hintEl.textContent = '✗ 错误！';
+        hintEl.style.color = '#ff6b6b';
+        updateLives();
+
+        if (lives <= 0) {
+            setTimeout(() => endGame(), 800);
+            return;
+        }
+    }
+
+    scoreEl.textContent = score;
+    streakEl.textContent = streak;
+    progressFill.style.width = `${(totalAnswered / 20) * 100}%`;
+
+    setTimeout(() => {
+        if (isPlaying && lives > 0) nextRound();
+    }, 800);
+}
+
+function nextRound() {
+    answered = false;
+    currentPattern = generatePattern(currentLevel);
+    renderPattern(currentPattern);
+    renderOptions(currentPattern);
+    hintEl.textContent = '找出规律，选择问号处的答案';
+    hintEl.style.color = '#888';
+}
+
+function updateLives() {
+    livesEl.textContent = '❤'.repeat(Math.max(0, lives)) + '♡'.repeat(Math.max(0, 3 - lives));
+}
+
+function startGame() {
+    currentLevel = 1;
+    score = 0;
+    streak = 0;
+    lives = 3;
+    totalAnswered = 0;
+    correctCount = 0;
+    isPlaying = true;
+
+    scoreEl.textContent = '0';
+    levelEl.textContent = '1';
+    streakEl.textContent = '0';
+    updateLives();
+    progressFill.style.width = '0%';
+    startBtn.textContent = '进行中...';
+    startBtn.style.opacity = '0.5';
+    startBtn.style.pointerEvents = 'none';
+
+    nextRound();
+}
+
+function endGame() {
+    isPlaying = false;
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+
+    if (score > best) {
+        best = score;
+        localStorage.setItem('patternReasonBest', best);
+    }
+
+    const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+    document.getElementById('resultTitle').textContent = accuracy >= 80 ? '🧠 推理高手！' : accuracy >= 50 ? '👍 不错的表现！' : '💪 继续练习！';
+    document.getElementById('resultScore').textContent = score;
+    document.getElementById('resultDetail').innerHTML = `
+        正确率: ${accuracy}% · 到达关卡: ${currentLevel}<br>
+        最高分: ${best}
+    `;
+    document.getElementById('resultOverlay').classList.add('show');
+}
+
+function closeResult() {
+    document.getElementById('resultOverlay').classList.remove('show');
+}
+
+function resetGame() {
+    isPlaying = false;
+    currentLevel = 1; score = 0; streak = 0; lives = 3;
+    totalAnswered = 0; correctCount = 0;
+    scoreEl.textContent = '0'; levelEl.textContent = '1'; streakEl.textContent = '0';
+    updateLives(); progressFill.style.width = '0%';
+    patternRow.innerHTML = ''; optionsRow.innerHTML = '';
+    hintEl.textContent = '找出规律，选择问号处的答案';
+    hintEl.style.color = '#888';
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+}
+
+// Keyboard: 1-4 to select option
+document.addEventListener('keydown', e => {
+    if (!isPlaying || answered) return;
+    const idx = parseInt(e.key) - 1;
+    if (idx >= 0 && idx < 4) {
+        const btns = optionsRow.querySelectorAll('.option-btn');
+        if (btns[idx]) btns[idx].click();
+    }
+});
+</script>
+</body>
+</html>

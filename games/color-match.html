@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>颜色匹配 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 480px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #00b894; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
+        .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #00b894; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+
+        .hint { font-size: 14px; color: #888; margin-bottom: 16px; min-height: 20px; }
+
+        .match-area {
+            min-height: 200px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; margin: 20px 0;
+            animation: fadeIn 0.2s ease;
+        }
+        .color-word {
+            font-size: 64px; font-weight: 900; letter-spacing: 4px;
+            margin-bottom: 12px; text-shadow: 0 0 40px rgba(0,0,0,0.3);
+            transition: all 0.15s;
+        }
+        .match-question {
+            font-size: 16px; color: #888; margin-top: 8px;
+        }
+
+        .feedback {
+            font-size: 20px; font-weight: 700; margin-top: 12px;
+            min-height: 28px; transition: all 0.2s;
+        }
+        .feedback.correct { color: #55efc4; }
+        .feedback.wrong { color: #ff6b6b; }
+
+        .progress-bar {
+            width: 300px; max-width: 80vw; height: 4px; margin: 12px auto;
+            background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #00b894, #55efc4);
+            border-radius: 2px; transition: width 0.3s;
+        }
+
+        .controls-row {
+            display: flex; justify-content: center; gap: 16px; margin: 20px 0;
+        }
+        .match-btn {
+            padding: 14px 40px; border: 2px solid rgba(255,255,255,0.12);
+            border-radius: 14px; background: rgba(255,255,255,0.05);
+            color: #ccc; font-size: 18px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .match-btn:active { transform: scale(0.95); }
+        .match-btn.yes { border-color: rgba(85,239,196,0.3); }
+        .match-btn.yes:hover { background: rgba(85,239,196,0.1); color: #55efc4; }
+        .match-btn.no { border-color: rgba(255,107,107,0.3); }
+        .match-btn.no:hover { background: rgba(255,107,107,0.1); color: #ff6b6b; }
+
+        .actions { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: #fff; box-shadow: 0 4px 15px rgba(0,184,148,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(0,184,148,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+
+        .result-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .result-overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .result-overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 24px; color: #fff; margin-bottom: 12px; }
+        .result-score { font-size: 48px; font-weight: 700; color: #00b894; margin: 12px 0; }
+        .result-detail { font-size: 14px; color: #888; margin-bottom: 20px; line-height: 1.8; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../index.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>🎨 颜色匹配</h1>
+        <p>快速判断文字含义与显示颜色是否一致</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="score">0</div><div class="stat-label">得分</div></div>
+        <div><div class="stat-val" id="combo">0</div><div class="stat-label">连击</div></div>
+        <div><div class="stat-val" id="round">0/30</div><div class="stat-label">进度</div></div>
+        <div><div class="stat-val" id="avgTime">0</div><div class="stat-label">均时(ms)</div></div>
+    </div>
+    <div class="hint" id="hint">文字含义与显示颜色是否一致？</div>
+    <div class="match-area" id="matchArea">
+        <div class="color-word" id="colorWord" style="color:#888">准备</div>
+        <div class="match-question">← 匹配 &nbsp;|&nbsp; 不匹配 →</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="controls-row">
+        <button class="match-btn yes" id="btnYes" onclick="answer(true)">✓ 匹配</button>
+        <button class="match-btn no" id="btnNo" onclick="answer(false)">✗ 不匹配</button>
+    </div>
+    <div class="actions">
+        <button class="btn btn-secondary" onclick="resetGame()">重置</button>
+        <button class="btn btn-primary" id="startBtn" onclick="startGame()">开始</button>
+    </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2 id="resultTitle">训练结束</h2>
+        <div class="result-score" id="resultScore">0</div>
+        <div class="result-detail" id="resultDetail"></div>
+        <button class="btn btn-primary" onclick="closeResult(); startGame();">再来一次</button>
+    </div>
+</div>
+
+<script>
+const COLORS = [
+    { name: '红色', hex: '#e74c3c' },
+    { name: '蓝色', hex: '#3498db' },
+    { name: '绿色', hex: '#2ecc71' },
+    { name: '黄色', hex: '#f1c40f' },
+    { name: '紫色', hex: '#9b59b6' },
+    { name: '橙色', hex: '#e67e22' },
+    { name: '粉色', hex: '#e91e63' },
+    { name: '青色', hex: '#00bcd4' },
+];
+
+let totalRounds = 30;
+let currentRound = 0;
+let score = 0;
+let combo = 0;
+let maxCombo = 0;
+let isPlaying = false;
+let answered = false;
+let currentMatch = false;
+let stimulusStart = 0;
+let reactionTimes = [];
+let best = parseInt(localStorage.getItem('colorMatchBest') || '0');
+
+const scoreEl = document.getElementById('score');
+const comboEl = document.getElementById('combo');
+const roundEl = document.getElementById('round');
+const avgTimeEl = document.getElementById('avgTime');
+const hintEl = document.getElementById('hint');
+const colorWordEl = document.getElementById('colorWord');
+const progressFill = document.getElementById('progressFill');
+const startBtn = document.getElementById('startBtn');
+
+function generateStimulus() {
+    // Pick a word (color name) and a display color
+    const wordIdx = Math.floor(Math.random() * COLORS.length);
+    let colorIdx;
+
+    // 50% chance of match
+    currentMatch = Math.random() < 0.5;
+    if (currentMatch) {
+        colorIdx = wordIdx;
+    } else {
+        do {
+            colorIdx = Math.floor(Math.random() * COLORS.length);
+        } while (colorIdx === wordIdx);
+    }
+
+    return { word: COLORS[wordIdx].name, color: COLORS[colorIdx].hex };
+}
+
+function showStimulus() {
+    if (currentRound >= totalRounds) {
+        endGame();
+        return;
+    }
+
+    answered = false;
+    const s = generateStimulus();
+    colorWordEl.textContent = s.word;
+    colorWordEl.style.color = s.color;
+    stimulusStart = Date.now();
+
+    // Auto-advance if no answer in 3 seconds
+    setTimeout(() => {
+        if (!answered && isPlaying) {
+            answer(null); // timeout
+        }
+    }, 3000);
+}
+
+function answer(isMatch) {
+    if (!isPlaying || answered) return;
+    answered = true;
+
+    const rt = Date.now() - stimulusStart;
+    reactionTimes.push(rt);
+
+    if (isMatch === null) {
+        // Timeout
+        combo = 0;
+        hintEl.textContent = '⏰ 超时！';
+        hintEl.style.color = '#fdcb6e';
+    } else if (isMatch === currentMatch) {
+        // Correct
+        combo++;
+        if (combo > maxCombo) maxCombo = combo;
+        const comboBonus = Math.min(combo, 10);
+        const timeBonus = Math.max(0, Math.floor((1000 - rt) / 10));
+        const points = 10 + comboBonus + timeBonus;
+        score += points;
+        hintEl.textContent = `✓ +${points}分 · ${rt}ms`;
+        hintEl.style.color = '#55efc4';
+    } else {
+        // Wrong
+        combo = 0;
+        score = Math.max(0, score - 10);
+        hintEl.textContent = `✗ 错误！${currentMatch ? '颜色是一致的' : '颜色不一致'}`;
+        hintEl.style.color = '#ff6b6b';
+    }
+
+    scoreEl.textContent = score;
+    comboEl.textContent = combo;
+    currentRound++;
+    roundEl.textContent = `${currentRound}/${totalRounds}`;
+    progressFill.style.width = `${(currentRound / totalRounds) * 100}%`;
+
+    const avg = reactionTimes.length > 0
+        ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+        : 0;
+    avgTimeEl.textContent = avg;
+
+    // Next stimulus after brief delay
+    setTimeout(() => {
+        if (isPlaying) showStimulus();
+    }, 400);
+}
+
+function startGame() {
+    currentRound = 0;
+    score = 0;
+    combo = 0;
+    maxCombo = 0;
+    reactionTimes = [];
+    isPlaying = true;
+
+    scoreEl.textContent = '0';
+    comboEl.textContent = '0';
+    roundEl.textContent = '0/' + totalRounds;
+    avgTimeEl.textContent = '0';
+    progressFill.style.width = '0%';
+    hintEl.textContent = '文字含义与显示颜色是否一致？';
+    hintEl.style.color = '#888';
+    startBtn.textContent = '进行中...';
+    startBtn.style.opacity = '0.5';
+    startBtn.style.pointerEvents = 'none';
+
+    showStimulus();
+}
+
+function endGame() {
+    isPlaying = false;
+    colorWordEl.textContent = '结束';
+    colorWordEl.style.color = '#888';
+
+    if (score > best) {
+        best = score;
+        localStorage.setItem('colorMatchBest', best);
+    }
+
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+
+    const avg = reactionTimes.length > 0
+        ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+        : 0;
+    const correctCount = reactionTimes.length; // approximate
+
+    document.getElementById('resultTitle').textContent = avg < 500 ? '⚡ 闪电速度！' : avg < 800 ? '👍 反应不错！' : '💪 继续练习！';
+    document.getElementById('resultScore').textContent = score;
+    document.getElementById('resultDetail').innerHTML = `
+        平均反应: ${avg}ms · 最大连击: ${maxCombo}<br>
+        最高分: ${best}
+    `;
+    document.getElementById('resultOverlay').classList.add('show');
+}
+
+function closeResult() {
+    document.getElementById('resultOverlay').classList.remove('show');
+}
+
+function resetGame() {
+    isPlaying = false;
+    currentRound = 0;
+    score = 0;
+    combo = 0;
+    reactionTimes = [];
+
+    scoreEl.textContent = '0';
+    comboEl.textContent = '0';
+    roundEl.textContent = '0/' + totalRounds;
+    avgTimeEl.textContent = '0';
+    progressFill.style.width = '0%';
+    hintEl.textContent = '文字含义与显示颜色是否一致？';
+    hintEl.style.color = '#888';
+    colorWordEl.textContent = '准备';
+    colorWordEl.style.color = '#888';
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+}
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+    if (!isPlaying) return;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') answer(true);
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') answer(false);
+});
+</script>
+</body>
+</html>
