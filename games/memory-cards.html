@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>记忆翻牌 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e0e0e0;
+        }
+        .app { width: 560px; max-width: 96vw; text-align: center; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .controls {
+            display: flex; justify-content: center; gap: 8px;
+            margin: 16px 0; flex-wrap: wrap;
+        }
+        .ctrl-btn {
+            padding: 7px 16px; border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px; background: rgba(255,255,255,0.05);
+            color: #999; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.1); color: #ccc; }
+        .ctrl-btn.active {
+            background: rgba(253,203,110,0.2); color: #fdcb6e;
+            border-color: rgba(253,203,110,0.4);
+        }
+        .stats {
+            display: flex; justify-content: center; gap: 28px; margin-bottom: 16px;
+        }
+        .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #fdcb6e; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+        .board {
+            display: grid; gap: 8px; padding: 16px;
+            background: rgba(255,255,255,0.03); border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+            margin: 0 auto 20px; justify-content: center;
+        }
+        .card {
+            aspect-ratio: 1; border-radius: 12px; cursor: pointer;
+            perspective: 600px; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .card-inner {
+            width: 100%; height: 100%; position: relative;
+            transform-style: preserve-3d; transition: transform 0.4s ease;
+            border-radius: 12px;
+        }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-face {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .card-back {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border: 1px solid rgba(255,255,255,0.15);
+            font-size: 24px; color: rgba(255,255,255,0.3);
+        }
+        .card-back::after { content: '?'; font-weight: 700; }
+        .card-front {
+            transform: rotateY(180deg);
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.1);
+            font-size: 36px;
+        }
+        .card.matched .card-front {
+            background: rgba(0,206,209,0.15);
+            border-color: rgba(0,206,209,0.3);
+        }
+        .card.matched { pointer-events: none; }
+        .card.wrong .card-front {
+            border-color: rgba(255,107,107,0.5);
+            background: rgba(255,107,107,0.15);
+        }
+        .actions { display: flex; justify-content: center; gap: 12px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #fdcb6e, #f39c12);
+            color: #1a1a2e;
+            box-shadow: 0 4px 15px rgba(253,203,110,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(253,203,110,0.5); }
+        .btn-secondary {
+            background: rgba(255,255,255,0.08); color: #aaa;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+        .back-link {
+            display: inline-block; margin-bottom: 16px; color: #888;
+            text-decoration: none; font-size: 13px; transition: color 0.2s;
+        }
+        .back-link:hover { color: #fdcb6e; }
+        .overlay {
+            position: fixed; top:0;left:0;right:0;bottom:0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 26px; color: #fff; margin-bottom: 12px; }
+        .result-stats { display: flex; gap: 24px; justify-content: center; margin: 16px 0 20px; }
+        .result-stat { text-align: center; }
+        .result-stat .val { font-size: 32px; font-weight: 700; color: #fdcb6e; }
+        .result-stat .lbl { font-size: 12px; color: #666; margin-top: 2px; }
+        .stars { font-size: 28px; margin-bottom: 16px; letter-spacing: 4px; }
+        @media (max-width: 480px) {
+            .card-front { font-size: 24px; }
+            .board { gap: 5px; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>🃏 记忆翻牌</h1>
+        <p>翻开卡牌，找出所有配对，锻炼视觉记忆</p>
+    </div>
+    <div class="controls">
+        <button class="ctrl-btn active" data-level="easy" onclick="setLevel('easy')">简单4×3</button>
+        <button class="ctrl-btn" data-level="medium" onclick="setLevel('medium')">中等 4×4</button>
+        <button class="ctrl-btn" data-level="hard" onclick="setLevel('hard')">困难 5×4</button>
+        <button class="ctrl-btn" data-level="expert" onclick="setLevel('expert')">专家 6×5</button>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="moves">0</div><div class="stat-label">步数</div></div>
+        <div><div class="stat-val" id="pairs">0/0</div><div class="stat-label">配对</div></div>
+        <div><div class="stat-val" id="timer">0:00</div><div class="stat-label">用时</div></div>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="actions">
+        <button class="btn btn-secondary" onclick="resetGame()">重置</button>
+        <button class="btn btn-primary" id="startBtn" onclick="startGame()">开始</button>
+    </div>
+</div>
+<div class="overlay" id="overlay">
+    <div class="result-card">
+        <h2>🎉 全部配对！</h2>
+        <div class="stars" id="stars"></div>
+        <div class="result-stats">
+            <div class="result-stat"><div class="val" id="rMoves">0</div><div class="lbl">步数</div></div>
+            <div class="result-stat"><div class="val" id="rTime">0:00</div><div class="lbl">用时</div></div>
+        </div>
+        <button class="btn btn-primary" onclick="closeOverlay();startGame();">再来一局</button>
+    </div>
+</div>
+<script>
+const EMOJIS = ['🍎','🍊','🍋','🍇','🍉','🍓','🫐','🍑','🥝','🍌','🥭','🍍','🥥','🍒','🫒','🌶�?,'🥑','🧁','🍩','🍪','🎂','🍭','🍬','🍫','🧲','🎯','🎲','🎪','🎨','🎭'];
+const LEVELS = {
+    easy:   { cols: 4, rows: 3, pairs: 6 },
+    medium: { cols: 4, rows: 4, pairs: 8 },
+    hard:   { cols: 5, rows: 4, pairs: 10 },
+    expert: { cols: 6, rows: 5, pairs: 15 }
+};
+
+let level = 'easy', cards = [], flipped = [], matched = 0, totalPairs = 0;
+let moves = 0, isPlaying = false, startTime = 0, timerInterval = null, locked = false;
+
+const board = document.getElementById('board');
+const movesEl = document.getElementById('moves');
+const pairsEl = document.getElementById('pairs');
+const timerEl = document.getElementById('timer');
+
+function setLevel(l) {
+    if (isPlaying) return;
+    level = l;
+    document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.ctrl-btn[data-level="${l}"]`).classList.add('active');
+    resetGame();
+}
+
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+}
+
+function startGame() {
+    const cfg = LEVELS[level];
+    totalPairs = cfg.pairs;
+    matched = 0; moves = 0; flipped = []; locked = false;
+    isPlaying = true; startTime = Date.now();
+    movesEl.textContent = '0';
+    pairsEl.textContent = `0/${totalPairs}`;
+    timerEl.textContent = '0:00';
+    document.getElementById('startBtn').textContent = '进行中...';
+    document.getElementById('startBtn').style.opacity = '0.5';
+    document.getElementById('startBtn').style.pointerEvents = 'none';
+
+    // Generate cards
+    const selected = EMOJIS.slice(0, cfg.pairs);
+    const deck = [...selected, ...selected];
+    shuffle(deck);
+    cards = deck;
+
+    const cellSize = Math.min(80, (Math.min(window.innerWidth, 560) - 40 - (cfg.cols - 1) * 8 - 32) / cfg.cols);
+    board.style.gridTemplateColumns = `repeat(${cfg.cols}, ${cellSize}px)`;
+    board.innerHTML = '';
+
+    deck.forEach((emoji, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.index = i;
+        card.innerHTML = `
+            <div class="card-inner">
+                <div class="card-face card-back"></div>
+                <div class="card-face card-front">${emoji}</div>
+            </div>`;
+        card.addEventListener('click', () => flipCard(i));
+        card.addEventListener('touchstart', (e) => { e.preventDefault(); flipCard(i); }, { passive: false });
+        board.appendChild(card);
+    });
+
+    startTimer();
+}
+
+function flipCard(index) {
+    if (!isPlaying || locked) return;
+    const card = board.children[index];
+    if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+    card.classList.add('flipped');
+    flipped.push(index);
+
+    if (flipped.length === 2) {
+        moves++;
+        movesEl.textContent = moves;
+        locked = true;
+
+        const [a, b] = flipped;
+        if (cards[a] === cards[b]) {
+            // Match
+            setTimeout(() => {
+                board.children[a].classList.add('matched');
+                board.children[b].classList.add('matched');
+                matched++;
+                pairsEl.textContent = `${matched}/${totalPairs}`;
+                flipped = [];
+                locked = false;
+                if (matched === totalPairs) gameComplete();
+            }, 300);
+        } else {
+            // No match
+            setTimeout(() => {
+                board.children[a].classList.add('wrong');
+                board.children[b].classList.add('wrong');
+                setTimeout(() => {
+                    board.children[a].classList.remove('flipped', 'wrong');
+                    board.children[b].classList.remove('flipped', 'wrong');
+                    flipped = [];
+                    locked = false;
+                }, 500);
+            }, 400);
+        }
+    }
+}
+
+function gameComplete() {
+    isPlaying = false;
+    stopTimer();
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const mm = String(Math.floor(elapsed / 60)).padStart(1, '0');
+    const ss = String(elapsed % 60).padStart(2, '0');
+
+    document.getElementById('startBtn').textContent = '开始';
+    document.getElementById('startBtn').style.opacity = '';
+    document.getElementById('startBtn').style.pointerEvents = '';
+
+    // Stars based on efficiency
+    const ratio = moves / totalPairs;
+    let starCount = ratio <= 1.5 ? 3 : ratio <= 2.5 ? 2 : 1;
+    document.getElementById('stars').textContent = '�?.repeat(starCount) + '☆'.repeat(3 - starCount);
+    document.getElementById('rMoves').textContent = moves;
+    document.getElementById('rTime').textContent = `${mm}:${ss}`;
+    document.getElementById('overlay').classList.add('show');
+}
+
+function closeOverlay() {
+    document.getElementById('overlay').classList.remove('show');
+}
+
+function resetGame() {
+    stopTimer();
+    isPlaying = false; locked = false;
+    moves = 0; matched = 0; flipped = [];
+    movesEl.textContent = '0';
+    pairsEl.textContent = '0/0';
+    timerEl.textContent = '0:00';
+    document.getElementById('startBtn').textContent = '开始';
+    document.getElementById('startBtn').style.opacity = '';
+    document.getElementById('startBtn').style.pointerEvents = '';
+    board.innerHTML = '';
+}
+
+function startTimer() {
+    stopTimer();
+    timerInterval = setInterval(() => {
+        const s = Math.floor((Date.now() - startTime) / 1000);
+        timerEl.textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+    }, 500);
+}
+function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+</script>
+</body>
+</html

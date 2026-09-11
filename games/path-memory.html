@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>路径记忆 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 480px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #6c5ce7; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 28px; margin: 20px 0; }
+        .stat-val { font-size: 32px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #a29bfe; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+        .hint { font-size: 15px; font-weight: 600; color: #a29bfe; margin-bottom: 16px; min-height: 24px; }
+
+        .grid-container { margin: 0 auto 20px; }
+        .grid {
+            display: inline-grid; gap: 6px; padding: 16px;
+            background: rgba(255,255,255,0.03); border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .cell {
+            width: 52px; height: 52px; border-radius: 10px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer; transition: all 0.2s; position: relative;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .cell:hover:not(.disabled) { background: rgba(255,255,255,0.1); }
+        .cell:active:not(.disabled) { transform: scale(0.95); }
+        .cell.lit {
+            background: rgba(108,92,231,0.4); border-color: rgba(108,92,231,0.6);
+            box-shadow: 0 0 16px rgba(108,92,231,0.3);
+        }
+        .cell.path-correct {
+            background: rgba(85,239,196,0.3); border-color: rgba(85,239,196,0.5);
+        }
+        .cell.path-wrong {
+            background: rgba(255,107,107,0.3); border-color: rgba(255,107,107,0.5);
+        }
+        .cell.disabled { pointer-events: none; }
+        .cell .step-num {
+            font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.8);
+        }
+        .cell.path-correct .step-num { color: #55efc4; }
+        .cell.path-wrong .step-num { color: #ff6b6b; }
+
+        .actions { display: flex; justify-content: center; gap: 12px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: #fff; box-shadow: 0 4px 15px rgba(108,92,231,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(108,92,231,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+
+        .overlay {
+            position: fixed; top:0;left:0;right:0;bottom:0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 26px; color: #fff; margin-bottom: 12px; }
+        .result-big { font-size: 56px; font-weight: 700; color: #a29bfe; margin: 12px 0; }
+        .result-big span { font-size: 20px; color: #888; }
+        .result-sub { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .best-record { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+        .start-screen { margin: 40px 0; }
+        .start-screen p { font-size: 14px; color: #999; line-height: 1.8; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>🗺️ 路径记忆</h1>
+        <p>记住亮起的路径顺序，然后按序点击</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="levelVal">1</div><div class="stat-label">关卡</div></div>
+        <div><div class="stat-val" id="pathLenVal">3</div><div class="stat-label">路径长度</div></div>
+        <div><div class="stat-val" id="bestVal">0</div><div class="stat-label">最高关卡</div></div>
+    </div>
+    <div class="hint" id="hintText">点击开始</div>
+    <div class="grid-container">
+        <div class="grid" id="grid"></div>
+    </div>
+    <div id="gameArea">
+        <div class="start-screen" id="startScreen">
+            <p>网格中的格子会按顺序亮起。<br>记住亮起的顺序，然后按相同顺序点击格子。</p>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="startGame()">开始游戏</button>
+            </div>
+        </div>
+        <div id="playArea" style="display:none"></div>
+    </div>
+</div>
+
+<div class="overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2>游戏结束</h2>
+        <div class="result-big" id="resultLevel">1<span>关</span></div>
+        <div class="result-sub" id="resultDetail"></div>
+        <div class="best-record" id="bestRecord"></div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="startGame()">再来一次</button>
+            <button class="btn btn-secondary" onclick="backToHome()">返回列表</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const GRID_SIZE = 5;
+let level = 1, path = [], playerPath = [], isShowing = false, bestLevel = 0;
+
+function getGridSize() {
+    if (level <= 3) return 4;
+    if (level <= 6) return 5;
+    return 6;
+}
+
+function getPathLength() {
+    return Math.min(2 + level, 12);
+}
+
+function buildGrid() {
+    const size = getGridSize();
+    const grid = document.getElementById('grid');
+    grid.style.gridTemplateColumns = `repeat(${size}, 52px)`;
+    grid.innerHTML = '';
+    for (let i = 0; i < size * size; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell disabled';
+        cell.dataset.idx = i;
+        cell.onclick = () => handleCellClick(i);
+        grid.appendChild(cell);
+    }
+}
+
+function startGame() {
+    document.getElementById('resultOverlay').classList.remove('show');
+    document.getElementById('startScreen').style.display = 'none';
+    level = 1;
+    bestLevel = parseInt(localStorage.getItem('path_best') || '0');
+    document.getElementById('bestVal').textContent = bestLevel;
+    startLevel();
+}
+
+function startLevel() {
+    path = [];
+    playerPath = [];
+    isShowing = true;
+    const len = getPathLength();
+    const size = getGridSize();
+    const total = size * size;
+
+    // Generate random path
+    const used = new Set();
+    while (path.length < len) {
+        const idx = Math.floor(Math.random() * total);
+        if (!used.has(idx)) {
+            used.add(idx);
+            path.push(idx);
+        }
+    }
+
+    buildGrid();
+    updateStats();
+    document.getElementById('hintText').textContent = '记住路径顺序...';
+
+    // Show path with animation
+    path.forEach((idx, i) => {
+        setTimeout(() => {
+            const cells = document.querySelectorAll('.cell');
+            cells[idx].classList.add('lit');
+            setTimeout(() => {
+                cells[idx].classList.remove('lit');
+            }, 500);
+            if (i === path.length - 1) {
+                setTimeout(() => {
+                    isShowing = false;
+                    enableCells();
+                    document.getElementById('hintText').textContent = '按顺序点击路径';
+                }, 600);
+            }
+        }, i * 700 + 300);
+    });
+}
+
+function enableCells() {
+    document.querySelectorAll('.cell').forEach(c => c.classList.remove('disabled'));
+}
+
+function disableCells() {
+    document.querySelectorAll('.cell').forEach(c => c.classList.add('disabled'));
+}
+
+function handleCellClick(idx) {
+    if (isShowing) return;
+    const expected = path[playerPath.length];
+    const cells = document.querySelectorAll('.cell');
+    const cell = cells[idx];
+
+    playerPath.push(idx);
+
+    if (idx === expected) {
+        cell.classList.add('path-correct');
+        const num = document.createElement('span');
+        num.className = 'step-num';
+        num.textContent = playerPath.length;
+        cell.appendChild(num);
+        cell.classList.add('disabled');
+
+        if (playerPath.length === path.length) {
+            // Level complete
+            isShowing = true;
+            disableCells();
+            document.getElementById('hintText').textContent = '完美！进入下一关...';
+            level++;
+            setTimeout(startLevel, 1000);
+        }
+    } else {
+        // Wrong
+        cell.classList.add('path-wrong');
+        const num = document.createElement('span');
+        num.className = 'step-num';
+        num.textContent = '开始';
+        cell.appendChild(num);
+        isShowing = true;
+        disableCells();
+
+        // Show correct path
+        path.forEach((pIdx, i) => {
+            if (!cells[pIdx].classList.contains('path-correct')) {
+                cells[pIdx].classList.add('lit');
+                const num2 = document.createElement('span');
+                num2.className = 'step-num';
+                num2.textContent = i + 1;
+                cells[pIdx].appendChild(num2);
+            }
+        });
+
+        document.getElementById('hintText').textContent = '路径错误！';
+        setTimeout(endGame, 1500);
+    }
+}
+
+function updateStats() {
+    document.getElementById('levelVal').textContent = level;
+    document.getElementById('pathLenVal').textContent = getPathLength();
+    document.getElementById('bestVal').textContent = bestLevel;
+}
+
+function endGame() {
+    const reached = level;
+    if (reached > bestLevel) {
+        bestLevel = reached;
+        localStorage.setItem('path_best', bestLevel);
+        document.getElementById('bestRecord').textContent = '🎉 新纪录！';
+    } else {
+        document.getElementById('bestRecord').textContent = `历史最高：第${bestLevel} 关`;
+    }
+
+    document.getElementById('resultLevel').innerHTML = (reached - 1) + '<span>关</span>';
+    document.getElementById('resultDetail').textContent =
+        `到达第${reached} 关 · 路径长度 ${getPathLength()}`;
+    document.getElementById('resultOverlay').classList.add('show');
+}
+
+function backToHome() { location.href = '../brain-games.html'; }
+</script>
+</body>
+</html>

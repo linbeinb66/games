@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>反应速度 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 480px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #fdcb6e; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 28px; margin: 20px 0; }
+        .stat-val { font-size: 32px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #fdcb6e; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+
+        .reaction-zone {
+            width: 320px; height: 320px; margin: 20px auto;
+            border-radius: 50%; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; gap: 8px;
+            transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .reaction-zone:active { transform: scale(0.97); }
+        .reaction-zone.waiting {
+            background: linear-gradient(135deg, #2d3436, #636e72);
+            box-shadow: 0 0 40px rgba(99,110,114,0.2);
+        }
+        .reaction-zone.ready {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            box-shadow: 0 0 60px rgba(85,239,196,0.4);
+        }
+        .reaction-zone.early {
+            background: linear-gradient(135deg, #d63031, #e17055);
+            box-shadow: 0 0 40px rgba(214,48,49,0.3);
+        }
+        .reaction-zone.result {
+            background: linear-gradient(135deg, #fdcb6e, #ffeaa7);
+            box-shadow: 0 0 40px rgba(253,203,110,0.3);
+        }
+        .zone-text { font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); font-variant-numeric: tabular-nums; }
+        .reaction-zone.ready .zone-text { font-size: 36px; }
+        .zone-sub { font-size: 13px; color: rgba(255,255,255,0.7); }
+        .reaction-zone.early .zone-text { color: #fff; }
+        .reaction-zone.result .zone-text { color: #1a1a2e; text-shadow: none; }
+        .reaction-zone.result .zone-sub { color: rgba(26,26,46,0.6); }
+
+        .round-dots { display: flex; justify-content: center; gap: 8px; margin: 16px 0; }
+        .dot {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); transition: all 0.3s;
+        }
+        .dot.done { background: #55efc4; }
+        .dot.current { background: #fdcb6e; box-shadow: 0 0 8px rgba(253,203,110,0.5); }
+
+        .history { margin: 16px 0; }
+        .history-title { font-size: 12px; color: #666; margin-bottom: 8px; letter-spacing: 1px; }
+        .history-bars { display: flex; justify-content: center; align-items: flex-end; gap: 6px; height: 60px; }
+        .h-bar {
+            width: 32px; border-radius: 4px 4px 0 0;
+            background: rgba(253,203,110,0.3); transition: all 0.3s;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            position: relative;
+        }
+        .h-bar .h-val {
+            font-size: 10px; color: #fdcb6e; font-weight: 700;
+            position: absolute; top: -16px; white-space: nowrap;
+        }
+
+        .actions { display: flex; justify-content: center; gap: 12px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #fdcb6e, #f39c12);
+            color: #1a1a2e; box-shadow: 0 4px 15px rgba(253,203,110,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(253,203,110,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+
+        .overlay {
+            position: fixed; top:0;left:0;right:0;bottom:0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 26px; color: #fff; margin-bottom: 12px; }
+        .result-big { font-size: 56px; font-weight: 700; color: #fdcb6e; margin: 12px 0; }
+        .result-big span { font-size: 20px; color: #888; }
+        .result-sub { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .best-record { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+        .start-screen { margin: 40px 0; }
+        .start-screen p { font-size: 14px; color: #999; line-height: 1.8; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>⚡ 反应速度</h1>
+        <p>看到绿色立刻点击，测试你的反应时间</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="avgVal">---</div><div class="stat-label">平均 ms</div></div>
+        <div><div class="stat-val" id="bestVal">---</div><div class="stat-label">最佳ms</div></div>
+        <div><div class="stat-val" id="roundVal">0/5</div><div class="stat-label">轮次</div></div>
+    </div>
+    <div class="round-dots" id="roundDots"></div>
+
+    <div id="gameArea">
+        <div class="start-screen" id="startScreen">
+            <p>当圆圈变成<strong style="color:#55efc4">绿色</strong>时，尽快点击它！<br>如果提前点击会算犯规，共 5 轮测试。</p>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="startGame()">开始测试</button>
+            </div>
+        </div>
+        <div id="playArea" style="display:none">
+            <div class="reaction-zone waiting" id="reactionZone" onclick="handleClick()">
+                <div class="zone-text" id="zoneText">等待中...</div>
+                <div class="zone-sub" id="zoneSub">圆圈变绿后点击</div>
+            </div>
+            <div class="history" id="historyArea">
+                <div class="history-title">反应记录</div>
+                <div class="history-bars" id="historyBars"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2>测试完成</h2>
+        <div class="result-big" id="resultAvg">0<span>ms</span></div>
+        <div class="result-sub" id="resultDetail"></div>
+        <div class="best-record" id="bestRecord"></div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="startGame()">再来一次</button>
+            <button class="btn btn-secondary" onclick="backToHome()">返回列表</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const TOTAL_ROUNDS = 5;
+let round = 0, times = [], startTime = 0, waitTimer = null, state = 'idle', liveRaf = null;
+
+function startGame() {
+    document.getElementById('resultOverlay').classList.remove('show');
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('playArea').style.display = 'block';
+    round = 0; times = [];
+    updateStats();
+    updateDots();
+    document.getElementById('historyBars').innerHTML = '';
+    startRound();
+}
+
+function startRound() {
+    state = 'waiting';
+    const zone = document.getElementById('reactionZone');
+    zone.className = 'reaction-zone waiting';
+    document.getElementById('zoneText').textContent = '等待变绿...';
+    document.getElementById('zoneSub').textContent = '圆圈变绿后立刻点击';
+
+    const delay = 1500 + Math.random() * 3500; // 1.5~5s
+    waitTimer = setTimeout(() => {
+        state = 'ready';
+        zone.className = 'reaction-zone ready';
+        startTime = performance.now();
+        updateLiveTimer();
+    }, delay);
+}
+
+function updateLiveTimer() {
+    if (state !== 'ready') return;
+    const elapsed = Math.round(performance.now() - startTime);
+    document.getElementById('zoneText').textContent = elapsed + ' ms';
+    document.getElementById('zoneSub').textContent = '快点击！';
+    liveRaf = requestAnimationFrame(updateLiveTimer);
+}
+
+function handleClick() {
+    if (state === 'idle') return;
+
+    if (state === 'waiting') {
+        // Too early
+        clearTimeout(waitTimer);
+        if (liveRaf) { cancelAnimationFrame(liveRaf); liveRaf = null; }
+        state = 'early';
+        const zone = document.getElementById('reactionZone');
+        zone.className = 'reaction-zone early';
+        document.getElementById('zoneText').textContent = '太早了！';
+        document.getElementById('zoneSub').textContent = '点击继续';
+        state = 'early-wait';
+        return;
+    }
+
+    if (state === 'early-wait') {
+        startRound();
+        return;
+    }
+
+    if (state === 'ready') {
+        if (liveRaf) { cancelAnimationFrame(liveRaf); liveRaf = null; }
+        const reactionTime = Math.round(performance.now() - startTime);
+        times.push(reactionTime);
+        round++;
+        state = 'result';
+
+        const zone = document.getElementById('reactionZone');
+        zone.className = 'reaction-zone result';
+        document.getElementById('zoneText').textContent = reactionTime + ' ms';
+        document.getElementById('zoneSub').textContent = round < TOTAL_ROUNDS ? '点击继续' : '点击查看结果';
+
+        updateStats();
+        updateDots();
+        updateHistory(reactionTime, round);
+    } else if (state === 'result') {
+        if (round >= TOTAL_ROUNDS) {
+            endGame();
+        } else {
+            startRound();
+        }
+    }
+}
+
+function updateStats() {
+    if (times.length === 0) {
+        document.getElementById('avgVal').textContent = '---';
+        document.getElementById('bestVal').textContent = '---';
+    } else {
+        const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+        const best = Math.min(...times);
+        document.getElementById('avgVal').textContent = avg;
+        document.getElementById('bestVal').textContent = best;
+    }
+    document.getElementById('roundVal').textContent = `${round}/${TOTAL_ROUNDS}`;
+}
+
+function updateDots() {
+    const container = document.getElementById('roundDots');
+    container.innerHTML = '';
+    for (let i = 0; i < TOTAL_ROUNDS; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        if (i < round) dot.classList.add('done');
+        else if (i === round) dot.classList.add('current');
+        container.appendChild(dot);
+    }
+}
+
+function updateHistory(time, roundNum) {
+    const container = document.getElementById('historyBars');
+    const bar = document.createElement('div');
+    bar.className = 'h-bar';
+    const maxH = 60;
+    const h = Math.min(maxH, Math.max(8, time / 500 * maxH));
+    bar.style.height = h + 'px';
+    bar.style.background = time < 200 ? 'rgba(85,239,196,0.5)' : time < 350 ? 'rgba(253,203,110,0.5)' : 'rgba(255,107,107,0.5)';
+    const val = document.createElement('div');
+    val.className = 'h-val';
+    val.textContent = time;
+    val.style.color = time < 200 ? '#55efc4' : time < 350 ? '#fdcb6e' : '#ff6b6b';
+    bar.appendChild(val);
+    container.appendChild(bar);
+}
+
+function endGame() {
+    state = 'idle';
+    const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+    const best = Math.min(...times);
+    const worst = Math.max(...times);
+
+    document.getElementById('resultAvg').innerHTML = avg + '<span>ms</span>';
+    document.getElementById('resultDetail').textContent =
+        `最快${best}ms · 最慢${worst}ms · 共${TOTAL_ROUNDS} 轮`;
+
+    let rating = '';
+    if (avg < 200) rating = '🚀 超人级反应！';
+    else if (avg < 250) rating = '⚡ 非常敏捷！';
+    else if (avg < 300) rating = '👍 反应不错';
+    else if (avg < 400) rating = '😊 还行，继续练习！';
+    else rating = '🐢 需要多加练习！';
+
+    const bestSaved = localStorage.getItem('reaction_best') || 9999;
+    if (avg < bestSaved) {
+        localStorage.setItem('reaction_best', avg);
+        document.getElementById('bestRecord').textContent = '🎉 新纪录！';
+    } else {
+        document.getElementById('bestRecord').textContent = `历史最快：${bestSaved}ms`;
+    }
+
+    document.getElementById('resultDetail').textContent += '\n' + rating;
+    document.getElementById('resultOverlay').classList.add('show');
+}
+
+function backToHome() { location.href = '../brain-games.html'; }
+</script>
+</body>
+</html>

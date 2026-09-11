@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>斯特鲁普测试 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 480px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #e17055; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 28px; margin: 20px 0; }
+        .stat-val { font-size: 32px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #e17055; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+        .hint { font-size: 15px; font-weight: 600; color: #e17055; margin-bottom: 20px; min-height: 24px; }
+        .stroop-word {
+            font-size: 72px; font-weight: 900; margin: 30px 0;
+            letter-spacing: 4px; transition: all 0.2s;
+            text-shadow: 0 0 40px rgba(0,0,0,0.3);
+        }
+        .color-options {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 12px; max-width: 360px; margin: 0 auto 24px;
+        }
+        .color-btn {
+            padding: 16px 8px; border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 14px; cursor: pointer; font-size: 15px;
+            font-weight: 700; transition: all 0.2s; background: rgba(255,255,255,0.05);
+            color: #ccc;
+        }
+        .color-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .color-btn:active { transform: scale(0.96); }
+        .color-btn.correct-flash { background: rgba(85,239,196,0.3); border-color: #55efc4; color: #55efc4; }
+        .color-btn.wrong-flash { background: rgba(255,107,107,0.3); border-color: #ff6b6b; color: #ff6b6b; }
+        .color-btn.disabled { pointer-events: none; opacity: 0.5; }
+        .actions { display: flex; justify-content: center; gap: 12px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: #fff; box-shadow: 0 4px 15px rgba(225,112,85,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(225,112,85,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+        .overlay {
+            position: fixed; top:0;left:0;right:0;bottom:0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 26px; color: #fff; margin-bottom: 12px; }
+        .result-big { font-size: 56px; font-weight: 700; color: #e17055; margin: 12px 0; }
+        .result-big span { font-size: 20px; color: #888; }
+        .result-sub { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .best-record { font-size: 13px; color: #888; margin-bottom: 20px; }
+        .start-screen { margin: 40px 0; }
+        .start-screen p { font-size: 14px; color: #999; line-height: 1.8; margin-bottom: 20px; }
+        .example-row { display: flex; justify-content: center; align-items: center; gap: 12px; margin: 12px 0; }
+        .example-word { font-size: 36px; font-weight: 900; }
+        .example-arrow { font-size: 20px; color: #666; }
+        .example-answer { font-size: 18px; font-weight: 700; padding: 6px 16px; border-radius: 8px; background: rgba(255,255,255,0.06); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>🧪 斯特鲁普测试</h1>
+        <p>识别文字的显示颜色，忽略文字内容</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val" id="scoreVal">0</div><div class="stat-label">得分</div></div>
+        <div><div class="stat-val accent" id="timeVal">30</div><div class="stat-label">剩余题数</div></div>
+        <div><div class="stat-val" id="streakVal">0</div><div class="stat-label">连击</div></div>
+    </div>
+    <div id="gameArea">
+        <div class="start-screen" id="startScreen">
+            <p>屏幕会显示一个颜色词，但文字颜色与词义不同。<br>你需要选择文字的<strong style="color:#e17055">显示颜色</strong>，而不是文字内容！</p>
+            <div class="example-row">
+                <span class="example-word" style="color:#e74c3c">蓝色</span>
+                <span class="example-arrow">←</span>
+                <span class="example-answer" style="color:#e74c3c">红色 ←</span>
+            </div>
+            <p style="font-size:12px;color:#666;margin-top:8px">文字"蓝色""但显示为红色，正确答案是红色</p>
+            <div class="actions" style="margin-top:24px">
+                <button class="btn btn-primary" onclick="startGame()">开始测试</button>
+            </div>
+        </div>
+        <div id="playArea" style="display:none">
+            <div class="hint" id="hintText">选择文字的显示颜色</div>
+            <div class="stroop-word" id="stroopWord">红色</div>
+            <div class="color-options" id="colorOptions"></div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2>测试结束</h2>
+        <div class="result-big" id="resultScore">0<span>题</span></div>
+        <div class="result-sub" id="resultDetail"></div>
+        <div class="best-record" id="bestRecord"></div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="startGame()">再来一次</button>
+            <button class="btn btn-secondary" onclick="backToHome()">返回列表</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const COLORS = [
+    { name: '红色', hex: '#e74c3c' },
+    { name: '蓝色', hex: '#3498db' },
+    { name: '绿色', hex: '#2ecc71' },
+    { name: '黄色', hex: '#f1c40f' },
+    { name: '紫色', hex: '#9b59b6' },
+    { name: '橙色', hex: '#e67e22' }
+];
+
+let score = 0, streak = 0, bestStreak = 0, timeLeft = 30;
+let timer = null, currentColor = null, answered = 0, correct = 0;
+
+function startGame() {
+    document.getElementById('resultOverlay').classList.remove('show');
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('playArea').style.display = 'block';
+    score = 0; streak = 0; bestStreak = 0; timeLeft = 30; answered = 0; correct = 0;
+    updateStats();
+    nextRound();
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timeVal').textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+    }, 1000);
+}
+
+function nextRound() {
+    const wordIdx = Math.floor(Math.random() * COLORS.length);
+    const colorIdx = Math.floor(Math.random() * COLORS.length);
+    // Ensure word and color are different most of the time
+    const finalColorIdx = (wordIdx === colorIdx && Math.random() > 0.2)
+        ? (colorIdx + 1) % COLORS.length : colorIdx;
+
+    const word = COLORS[wordIdx].name;
+    currentColor = COLORS[finalColorIdx];
+
+    const wordEl = document.getElementById('stroopWord');
+    wordEl.textContent = word;
+    wordEl.style.color = currentColor.hex;
+    wordEl.classList.remove('fade-in');
+    void wordEl.offsetWidth;
+    wordEl.classList.add('fade-in');
+
+    // Generate 4 options including the correct one
+    const options = [currentColor];
+    const others = COLORS.filter(c => c.name !== currentColor.name);
+    while (options.length < 4 && others.length > 0) {
+        const idx = Math.floor(Math.random() * others.length);
+        options.push(others.splice(idx, 1)[0]);
+    }
+    // Shuffle
+    for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    const container = document.getElementById('colorOptions');
+    container.innerHTML = '';
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'color-btn';
+        btn.textContent = opt.name;
+        btn.style.borderColor = opt.hex + '40';
+        btn.style.color = opt.hex;
+        btn.onclick = () => handleAnswer(opt, btn);
+        container.appendChild(btn);
+    });
+}
+
+function handleAnswer(selected, btn) {
+    answered++;
+    const btns = document.querySelectorAll('.color-btn');
+    btns.forEach(b => b.classList.add('disabled'));
+
+    if (selected.name === currentColor.name) {
+        correct++;
+        streak++;
+        if (streak > bestStreak) bestStreak = streak;
+        const bonus = Math.min(streak, 5);
+        score += 10 + bonus * 2;
+        btn.classList.add('correct-flash');
+    } else {
+        streak = 0;
+        btn.classList.add('wrong-flash');
+        // Highlight correct
+        btns.forEach(b => {
+            if (b.textContent === currentColor.name) b.classList.add('correct-flash');
+        });
+    }
+    updateStats();
+    setTimeout(nextRound, 400);
+}
+
+function updateStats() {
+    document.getElementById('scoreVal').textContent = score;
+    document.getElementById('timeVal').textContent = timeLeft;
+    document.getElementById('streakVal').textContent = streak;
+}
+
+function endGame() {
+    clearInterval(timer);
+    document.getElementById('playArea').style.display = 'none';
+    const accuracy = answered > 0 ? Math.round(correct / answered * 100) : 0;
+    document.getElementById('resultScore').innerHTML = score + '<span>题</span>';
+    document.getElementById('resultDetail').textContent =
+        `正确 ${correct}/${answered} · 正确率${accuracy}% · 最长连击${bestStreak}`;
+
+    const best = localStorage.getItem('stroop_best') || 0;
+    if (score > best) {
+        localStorage.setItem('stroop_best', score);
+        document.getElementById('bestRecord').textContent = '🎉 新纪录！';
+    } else {
+        document.getElementById('bestRecord').textContent = `历史最高：${best} 分`;
+    }
+    document.getElementById('resultOverlay').classList.add('show');
+}
+
+function backToHome() {
+    location.href = '../brain-games.html';
+}
+</script>
+</body>
+</html>

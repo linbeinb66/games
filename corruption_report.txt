@@ -1,0 +1,204 @@
+=== 2048.html (4 corrupted) ===
+  pos 6009: 'ss="label">最'|REPL|'?/div>\n     '
+  pos 6202: 'nt">使用 <b>方向'|REPL|'?/b> �?<b>滑动'
+  pos 6208: ' <b>方向�?/b> '|REPL|'?<b>滑动</b> 移'
+  pos 6290: 'estart()">新游'|REPL|'?/button>\n  '
+
+=== memory-cards.html (10 corrupted) ===
+  pos 6102: 'games.html">'|REPL|'?返回游戏列表</a>\n'
+  pos 6322: 'l(\'easy\')">简'|REPL|'?4×3</button'
+  pos 7181: 'artGame()">开'|REPL|'?/button>\n  '
+  pos 7293: '  <h2>🎉 全部配对'|REPL|'?/h2>\n      '
+  pos 7804: "','🍒','🫒','🌶"|REPL|"?,'🥑','🧁','🍩"
+  pos 9214: "ontent = '进行"|REPL|"?..';\n    do"
+  pos 11975: "Content = '开"|REPL|'?;\n    docum'
+  pos 12290: "tContent = '"|REPL|'?.repeat(sta'
+  pos 12314: "arCount) + '"|REPL|'?.repeat(3 -'
+  pos 12899: "Content = '开"|REPL|'?;\n    docum'
+
+=== number-memory.html (16 corrupted) ===
+  pos 4796: 'games.html">'|REPL|'?返回游戏列表</a>\n'
+  pos 5105: 't-label">最高位'|REPL|'?/div></div>'
+  pos 5358: 't">点击「开始」启动训'|REPL|'?/div>\n    <'
+  pos 5556: 'artGame()">开'|REPL|'?/button>\n  '
+  pos 6544: "ontent = '进行"|REPL|"?..';\n    st"
+  pos 9549: 'pare-arrow">'|REPL|'?/div>\n     '
+  pos 9897: "{correct ? '"|REPL|"?完全正确�? : '�"
+  pos 9903: "ct ? '�?完全正确"|REPL|"? : '�?记忆有误'"
+  pos 9909: "�?完全正确�? : '"|REPL|"?记忆有误'}\n    "
+  pos 10058: "es > 0 ? '下一"|REPL|"? : '查看结果'}<"
+  pos 10716: ':4px;">最高记忆位'|REPL|'? <span styl'
+  pos 10838: 'or:#888;">到达'|REPL|'?${currentLe'
+  pos 10856: 'rrentLevel} '|REPL|'?/div>\n     '
+  pos 10917: "ntent = '重新开"|REPL|'?;\n    start'
+  pos 11793: 't">点击「开始」启动训'|REPL|"?/div>';\n   "
+  pos 11832: "Content = '开"|REPL|'?;\n    start'
+
+=== path-memory.html (17 corrupted) ===
+  pos 4979: 'games.html">'|REPL|'?返回游戏列表</a>\n'
+  pos 5030: '       <h1>🗺'|REPL|'?路径记忆</h1>\n '
+  pos 5392: 't-label">最高关'|REPL|'?/div></div>'
+  pos 5456: 'intText">点击开'|REPL|'?/div>\n    <'
+  pos 5654: '网格中的格子会按顺序亮起'|REPL|'?br>记住亮起的顺序，'
+  pos 5678: '，然后按相同顺序点击格子'|REPL|'?/p>\n       '
+  pos 5791: 'tGame()">开始游'|REPL|'?/button>\n  '
+  pos 6059: 'vel">1<span>'|REPL|'?/span></div'
+  pos 6286: 'tGame()">再来一'|REPL|'?/button>\n  '
+  pos 8525: "nt = '按顺序点击路"|REPL|'?;\n         '
+  pos 9530: "t = '完美！进入下一"|REPL|"?..';\n      "
+  pos 9797: "tContent = '"|REPL|'?;\n        c'
+  pos 10350: "tent = '路径错误"|REPL|'?;\n        s'
+  pos 10935: 'ent = `历史最高：'|REPL|'?${bestLevel'
+  pos 11039: "1) + '<span>"|REPL|"?/span>';\n  "
+  pos 11119: '\n        `到达'|REPL|'?${reached} '
+  pos 11132: '?${reached} '|REPL|'?· 路径长度 ${ge'
+
+=== pomodoro.html (9 corrupted) ===
+  pos 6415: 'tBreak\')">短休'|REPL|'?/button>\n  '
+  pos 6517: 'gBreak\')">长休'|REPL|'?/button>\n  '
+  pos 7082: 'leTimer()">开'|REPL|'?/button>\n  '
+  pos 7354: 'at-label">已完'|REPL|'?/div>\n     '
+  pos 7896: ", label: '短休"|REPL|"?, color: '#"
+  pos 7974: ", label: '长休"|REPL|"?, color: '#"
+  pos 11715: "Content = '开"|REPL|'?;\n         '
+  pos 12130: "Content = '开"|REPL|'?;\n         '
+  pos 12767: "tification('"|REPL|"?休息结束！继续专注吧'"
+
+=== quick-math.html (13 corrupted) ===
+  pos 5775: 'games.html">'|REPL|'?返回游戏列表</a>\n'
+  pos 5825: '        <h1>'|REPL|'?速算挑战</h1>\n '
+  pos 6085: 'at-label">剩余'|REPL|'?/div></div>'
+  pos 6313: '内尽可能快地完成心算题目'|REPL|'?br>连续答对可获得连'
+  pos 6466: 'iff(this)">简'|REPL|'?/button>\n  '
+  pos 6793: 'tGame()">开始挑'|REPL|'?/button>\n  '
+  pos 7528: 'ore">0<span>'|REPL|'?/span></div'
+  pos 7755: 'tGame()">再来一'|REPL|'?/button>\n  '
+  pos 11646: 'tContent = `'|REPL|'?答案: ${curre'
+  pos 12350: "re + '<span>"|REPL|"?/span>';\n  "
+  pos 12462: 'rrectQ} · 正确'|REPL|'?${accuracy}'
+  pos 12482: 'racy}% · 最长连'|REPL|'?${bestCombo'
+  pos 12835: " 'easy' ? '简"|REPL|'? : difficul'
+
+=== reaction.html (18 corrupted) ===
+  pos 6156: 'games.html">'|REPL|'?返回游戏列表</a>\n'
+  pos 6206: '        <h1>'|REPL|'?反应速度</h1>\n '
+  pos 6245: '立刻点击，测试你的反应时'|REPL|'?/p>\n    </d'
+  pos 6473: 'tat-label">最'|REPL|'?ms</div></d'
+  pos 6744: '     <p>当圆圈变'|REPL|'?strong styl'
+  pos 6816: '会算犯规，共 5 轮测试'|REPL|'?/p>\n       '
+  pos 6929: 'tGame()">开始测'|REPL|'?/button>\n  '
+  pos 7168: 'zoneText">等待'|REPL|'?..</div>\n  '
+  pos 7236: 'eSub">圆圈变绿后点'|REPL|'?/div>\n     '
+  pos 7862: 'tGame()">再来一'|REPL|'?/button>\n  '
+  pos 8764: " = '圆圈变绿后立刻点"|REPL|'?;\n\n    cons'
+  pos 12679: '=\n        `最'|REPL|'?${best}ms ·'
+  pos 12694: '{best}ms · 最'|REPL|'?${worst}ms '
+  pos 12709: '{worst}ms · '|REPL|'?${TOTAL_ROU'
+  pos 12827: ") rating = '"|REPL|'?非常敏捷�?;\n   '
+  pos 12833: "ng = '�?非常敏捷"|REPL|'?;\n    else '
+  pos 12922: " = '😊 还行，继续练"|REPL|'?;\n    else '
+  pos 12952: "g = '🐢 需要多加练"|REPL|'?;\n\n    cons'
+
+=== schulte.html (44 corrupted) ===
+  pos 178: ' <title>舒尔特方'|REPL|'?- 大脑训练</tit'
+  pos 1126: ' /* ===== 控制'|REPL|'?===== */\n  '
+  pos 10244: ' /* ===== 响应'|REPL|'?===== */\n  '
+  pos 10537: '  <h1>🧠 舒尔特方'|REPL|'?/h1>\n      '
+  pos 11626: '\'normal\')">普'|REPL|'?/button>\n  '
+  pos 11925: 't-label">用时('|REPL|'?</div>\n    '
+  pos 12332: 't">点击「开始」启动训'|REPL|'?/div>\n     '
+  pos 12461: '不变色，无法区分已点与未'|REPL|'?/div>\n\n    '
+  pos 12769: 'artGame()">开'|REPL|'?/button>\n  '
+  pos 12910: 'y-title">最近记'|REPL|'?/div>\n     '
+  pos 13131: '    <h2>🎉 完成'|REPL|'?/h2>\n      '
+  pos 13200: 'e">0.0<span>'|REPL|'?/span></div'
+  pos 13433: 'Game();">再来一'|REPL|'?/button>\n  '
+  pos 13929: "           '"|REPL|"?, '�?, '�?,"
+  pos 13934: "      '�?, '"|REPL|"?, '�?, '�?,"
+  pos 13939: " '�?, '�?, '"|REPL|"?, '�?, '�?,"
+  pos 13944: " '�?, '�?, '"|REPL|"?, '�?,\n    "
+  pos 13949: " '�?, '�?, '"|REPL|'?,\n         '
+  pos 13966: "           '"|REPL|"?, '�?, '�?,"
+  pos 13971: "      '�?, '"|REPL|"?, '�?, '天蓝'"
+  pos 13976: " '�?, '�?, '"|REPL|"?, '天蓝', '草绿"
+  pos 14011: "     '深橙', '"|REPL|"?, '灰蓝', '亮橙"
+  pos 14146: '  // ===== 状'|REPL|'?=====\n     '
+  pos 14283: '硬核模式：点击后方块不变'|REPL|'?\n        le'
+  pos 16815: '义不同（Stroop效果'|REPL|'?\n          '
+  pos 17115: ' // 确保文字和颜色不'|REPL|'?\n          '
+  pos 19458: "ontent = '进行"|REPL|"?..';\n      "
+  pos 19947: "= '点击「开始」启动训"|REPL|'?;\n         '
+  pos 19988: "Content = '开"|REPL|'?;\n         '
+  pos 20176: ' 显示所有格子为未开始状'|REPL|'?\n          '
+  pos 21736: '`${prefix}请点'|REPL|'? ${currentI'
+  pos 21769: " > count ? '"|REPL|'? : currentI'
+  pos 21891: '`${prefix}请点'|REPL|'? ${String.f'
+  pos 22252: '硬核模式结束时揭示所有方'|REPL|'?\n          '
+  pos 22430: "Content = '开"|REPL|'?;\n         '
+  pos 23095: ' // ===== 计时'|REPL|'?=====\n     '
+  pos 23938: '{time}<span>'|REPL|'?/span>`;\n\n '
+  pos 24544: '🏆 超凡！不可思议的速度'|REPL|"?, cls: 'rat"
+  pos 24635: " '🌟 优秀！反应非常敏"|REPL|"?, cls: 'rat"
+  pos 24726: " '👍 良好！高于平均水"|REPL|"?, cls: 'rat"
+  pos 24813: "'😊 一般，继续练习会更"|REPL|"?, cls: 'rat"
+  pos 24881: "'🐢 需要更多练习，加油"|REPL|"?, cls: 'rat"
+  pos 25889: ' // ===== 初始'|REPL|'?=====\n     '
+  pos 26056: '/ 窗口大小变化时重新渲'|REPL|'?\n        wi'
+
+=== sequence-memory.html (20 corrupted) ===
+  pos 4371: 'games.html">'|REPL|'?返回游戏列表</a>\n'
+  pos 4678: 'tat-label">最'|REPL|'?/div></div>'
+  pos 4744: 't">点击「开始」启动训'|REPL|'?/div>\n    <'
+  pos 5263: 'artGame()">开'|REPL|'?/button>\n  '
+  pos 5375: '  <h2>😵 记忆中断'|REPL|'?/h2>\n      '
+  pos 5438: 'vel">0<span>'|REPL|'?/span></div'
+  pos 5644: 'Game();">再来一'|REPL|'?/button>\n  '
+  pos 6625: "ontent = '进行"|REPL|"?..';\n    st"
+  pos 7218: " = '你的回合！重复序"|REPL|'?;\n        r'
+  pos 7868: "tContent = '"|REPL|'?正确！准备下一�?..'
+  pos 7877: "= '�?正确！准备下一"|REPL|"?..';\n      "
+  pos 8072: "tContent = '"|REPL|'?序列错误�?;\n   '
+  pos 8078: "nt = '�?序列错误"|REPL|'?;\n    simon'
+  pos 8328: "Content = '开"|REPL|'?;\n    start'
+  pos 8486: 'l - 1}<span>'|REPL|'?/span>`;\n  '
+  pos 8557: 'tent = `本局到达'|REPL|'?${currentLe'
+  pos 8579: 'tLevel} 关，记忆'|REPL|'?${(currentL'
+  pos 8669: 'ntent = `历史最'|REPL|'? ${best} 关`'
+  pos 8995: "= '点击「开始」启动训"|REPL|'?;\n    start'
+  pos 9028: "Content = '开"|REPL|'?;\n    start'
+
+=== stroop.html (14 corrupted) ===
+  pos 5205: 'games.html">'|REPL|'?返回游戏列表</a>\n'
+  pos 5520: 'at-label">剩余'|REPL|'?/div></div>'
+  pos 5753: '词，但文字颜色与词义不同'|REPL|'?br>你需要选择文字�'
+  pos 5765: '�?br>你需要选择文字'|REPL|'?strong styl'
+  pos 5980: 'mple-arrow">'|REPL|'?/span>\n    '
+  pos 6059: '#e74c3c">红色 '|REPL|'?/span>\n    '
+  pos 6153: '-top:8px">文字'|REPL|'?蓝色"但显示为红色，正'
+  pos 6308: 'tGame()">开始测'|REPL|'?/button>\n  '
+  pos 6454: 'xt">选择文字的显示颜'|REPL|'?/div>\n     '
+  pos 6771: 'ore">0<span>'|REPL|'?/span></div'
+  pos 6998: 'tGame()">再来一'|REPL|'?/button>\n  '
+  pos 10811: "re + '<span>"|REPL|"?/span>';\n  "
+  pos 10919: 'swered} · 正确'|REPL|'?${accuracy}'
+  pos 10939: 'racy}% · 最长连'|REPL|'?${bestStrea'
+
+=== word-memory.html (17 corrupted) ===
+  pos 5964: 'games.html">'|REPL|'?返回游戏列表</a>\n'
+  pos 6056: '，从选项中选出所有正确的'|REPL|'?/p>\n    </d'
+  pos 6285: 'at-label">词语'|REPL|'?/div></div>'
+  pos 6381: 't-label">最高关'|REPL|'?/div></div>'
+  pos 6445: 'intText">点击开'|REPL|'?/div>\n    <'
+  pos 6778: '示一组词语，记忆后在选项'|REPL|'?br>选出所有刚才出现'
+  pos 6802: '现过的词语。难度逐级递增'|REPL|'?/p>\n       '
+  pos 6915: 'tGame()">开始游'|REPL|'?/button>\n  '
+  pos 7392: 'vel">1<span>'|REPL|'?/span></div'
+  pos 7619: 'tGame()">再来一'|REPL|'?/button>\n  '
+  pos 10761: 'tent = `选出刚才'|REPL|'?${correctCo'
+  pos 12837: "t = '完美！进入下一"|REPL|"?..';\n      "
+  pos 13003: '{missed} · 错'|REPL|'?${wrong}`;\n'
+  pos 13636: 'ent = `历史最高：'|REPL|'?${bestLevel'
+  pos 13739: "1) + '<span>"|REPL|"?/span>';\n  "
+  pos 13819: '\n        `到达'|REPL|'?${reached} '
+  pos 13832: '?${reached} '|REPL|'?· 记忆 ${getW'
+

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>序列记忆 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 480px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #55efc4; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 28px; margin: 20px 0; }
+        .stat-val { font-size: 32px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #55efc4; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+        .hint { font-size: 16px; font-weight: 600; color: #55efc4; margin-bottom: 20px; min-height: 24px; }
+        .simon { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 320px; margin: 0 auto 24px; aspect-ratio: 1; }
+        .simon-btn {
+            border-radius: 16px; cursor: pointer; border: none;
+            transition: all 0.15s; opacity: 0.55; position: relative; overflow: hidden;
+        }
+        .simon-btn::after {
+            content: ''; position: absolute; inset: 0; border-radius: 16px;
+            background: rgba(255,255,255,0); transition: background 0.15s;
+        }
+        .simon-btn.lit { opacity: 1; transform: scale(1.04); }
+        .simon-btn.lit::after { background: rgba(255,255,255,0.25); }
+        .simon-btn:active:not(.disabled) { transform: scale(0.96); }
+        .simon-btn.disabled { cursor: default; }
+        .btn-red { background: #e74c3c; }
+        .btn-green { background: #2ecc71; }
+        .btn-blue { background: #3498db; }
+        .btn-yellow { background: #f1c40f; }
+        .actions { display: flex; justify-content: center; gap: 12px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            color: #1a1a2e; box-shadow: 0 4px 15px rgba(85,239,196,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(85,239,196,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+        .overlay {
+            position: fixed; top:0;left:0;right:0;bottom:0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 26px; color: #fff; margin-bottom: 12px; }
+        .result-big { font-size: 56px; font-weight: 700; color: #55efc4; margin: 12px 0; }
+        .result-big span { font-size: 20px; color: #888; }
+        .result-sub { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .best-record { font-size: 13px; color: #888; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>🧠 序列记忆</h1>
+        <p>记住灯光顺序并重复，挑战你的短期记忆</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="level">0</div><div class="stat-label">关卡</div></div>
+        <div><div class="stat-val" id="best">0</div><div class="stat-label">最高</div></div>
+    </div>
+    <div class="hint" id="hint">点击「开始」启动训练</div>
+    <div class="simon" id="simon">
+        <div class="simon-btn btn-red disabled" data-color="0"></div>
+        <div class="simon-btn btn-green disabled" data-color="1"></div>
+        <div class="simon-btn btn-yellow disabled" data-color="2"></div>
+        <div class="simon-btn btn-blue disabled" data-color="3"></div>
+    </div>
+    <div class="actions">
+        <button class="btn btn-secondary" onclick="resetGame()">重置</button>
+        <button class="btn btn-primary" id="startBtn" onclick="startGame()">开始</button>
+    </div>
+</div>
+<div class="overlay" id="overlay">
+    <div class="result-card">
+        <h2>😵 记忆中断！</h2>
+        <div class="result-big" id="resultLevel">0<span>关</span></div>
+        <div class="result-sub" id="resultSub"></div>
+        <div class="best-record" id="resultBest"></div>
+        <button class="btn btn-primary" onclick="closeOverlay();startGame();">再来一次</button>
+    </div>
+</div>
+<script>
+const COLORS = ['btn-red', 'btn-green', 'btn-yellow', 'btn-blue'];
+const LIT_DURATION = 400;
+const GAP_DURATION = 200;
+
+let sequence = [], playerIndex = 0, currentLevel = 0, bestLevel = 0;
+let isPlaying = false, isShowingSequence = false;
+let best = parseInt(localStorage.getItem('simonBest') || '0');
+
+const simonBtns = document.querySelectorAll('.simon-btn');
+const levelEl = document.getElementById('level');
+const bestEl = document.getElementById('best');
+const hintEl = document.getElementById('hint');
+const startBtn = document.getElementById('startBtn');
+
+bestEl.textContent = best;
+
+// Add click handlers
+simonBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (!isPlaying || isShowingSequence) return;
+        const color = parseInt(btn.dataset.color);
+        playerPress(color);
+    });
+});
+
+function startGame() {
+    sequence = [];
+    currentLevel = 0;
+    isPlaying = true;
+    startBtn.textContent = '进行中...';
+    startBtn.style.opacity = '0.5';
+    startBtn.style.pointerEvents = 'none';
+    simonBtns.forEach(b => b.classList.remove('disabled'));
+    nextLevel();
+}
+
+function nextLevel() {
+    currentLevel++;
+    levelEl.textContent = currentLevel;
+    hintEl.textContent = '观察序列...';
+    playerIndex = 0;
+
+    // Add random color
+    sequence.push(Math.floor(Math.random() * 4));
+
+    // Show sequence
+    isShowingSequence = true;
+    showSequence(0);
+}
+
+function showSequence(idx) {
+    if (idx >= sequence.length) {
+        isShowingSequence = false;
+        hintEl.textContent = '你的回合！重复序列';
+        return;
+    }
+
+    const color = sequence[idx];
+    lightUp(color, () => {
+        setTimeout(() => showSequence(idx + 1), GAP_DURATION);
+    });
+}
+
+function lightUp(color, callback) {
+    const btn = simonBtns[color];
+    btn.classList.add('lit');
+    playTone(color);
+    setTimeout(() => {
+        btn.classList.remove('lit');
+        if (callback) setTimeout(callback, 100);
+    }, LIT_DURATION);
+}
+
+function playerPress(color) {
+    lightUp(color, null);
+
+    if (sequence[playerIndex] === color) {
+        playerIndex++;
+        if (playerIndex === sequence.length) {
+            // Level complete
+            hintEl.textContent = '✅ 正确！准备下一关...';
+            setTimeout(() => nextLevel(), 800);
+        }
+    } else {
+        // Wrong
+        gameOver();
+    }
+}
+
+function gameOver() {
+    isPlaying = false;
+    hintEl.textContent = '❌ 序列错误！';
+    simonBtns.forEach(b => b.classList.add('disabled'));
+
+    if (currentLevel - 1 > best) {
+        best = currentLevel - 1;
+        localStorage.setItem('simonBest', best);
+        bestEl.textContent = best;
+    }
+
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+
+    document.getElementById('resultLevel').innerHTML = `${currentLevel - 1}<span>�?/span>`;
+    document.getElementById('resultSub').textContent = `本局到达第${currentLevel} 关，记忆了${(currentLevel - 1)} 步序列`;
+    document.getElementById('resultBest').textContent = `历史最高 ${best} 关`;
+    document.getElementById('overlay').classList.add('show');
+
+    // Error sound
+    playErrorTone();
+}
+
+function resetGame() {
+    isPlaying = false;
+    isShowingSequence = false;
+    sequence = [];
+    currentLevel = 0;
+    playerIndex = 0;
+    levelEl.textContent = '0';
+    hintEl.textContent = '点击「开始」启动训练';
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+    simonBtns.forEach(b => { b.classList.add('disabled'); b.classList.remove('lit'); });
+}
+
+function closeOverlay() {
+    document.getElementById('overlay').classList.remove('show');
+}
+
+// Sound
+const TONES = [329.63, 440, 277.18, 523.25]; // E4, A4, C#4, C5
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+}
+
+function playTone(color) {
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(TONES[color], ctx.currentTime);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
+}
+
+function playErrorTone() {
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.5);
+    } catch(e) {}
+}
+</script>
+</body>
+</html

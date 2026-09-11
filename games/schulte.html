@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>舒尔特方�?- 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        .app {
+            width: 520px;
+            max-width: 96vw;
+            text-align: center;
+        }
+
+        /* ===== 头部 ===== */
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 30px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #888;
+            letter-spacing: 1px;
+        }
+
+        /* ===== 控制�?===== */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .size-btn {
+            padding: 8px 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: #999;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .size-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #ccc;
+        }
+
+        .size-btn.active {
+            background: rgba(108, 92, 231, 0.25);
+            color: #a29bfe;
+            border-color: rgba(108, 92, 231, 0.5);
+        }
+
+        .mode-btn {
+            padding: 8px 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: #999;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #ccc;
+        }
+
+        .mode-btn.active {
+            background: rgba(0, 206, 209, 0.2);
+            color: #00cec9;
+            border-color: rgba(0, 206, 209, 0.5);
+        }
+
+        .diff-btn {
+            padding: 8px 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: #999;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diff-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #ccc;
+        }
+
+        .diff-btn.active {
+            background: rgba(253, 121, 168, 0.2);
+            color: #fd79a8;
+            border-color: rgba(253, 121, 168, 0.5);
+        }
+
+        /* ===== 状态栏 ===== */
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-value.timer {
+            color: #a29bfe;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== 提示 ===== */
+        .hint {
+            font-size: 18px;
+            font-weight: 600;
+            color: #a29bfe;
+            margin-bottom: 14px;
+            min-height: 28px;
+            transition: color 0.2s;
+        }
+
+        .hint.number-mode {
+            color: #00cec9;
+        }
+
+        /* ===== 方格 ===== */
+        .grid-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 6px;
+            padding: 12px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell.default {
+            background: rgba(255,255,255,0.07);
+            color: #ccc;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .cell.default:hover {
+            background: rgba(255,255,255,0.12);
+            transform: scale(1.04);
+        }
+
+        .cell.correct {
+            background: rgba(0, 206, 209, 0.2);
+            color: #00cec9;
+            border: 1px solid rgba(0, 206, 209, 0.3);
+            cursor: default;
+            animation: cellCorrect 0.3s ease;
+        }
+
+        .cell.wrong {
+            animation: cellWrong 0.4s ease;
+            background: rgba(255, 107, 107, 0.2) !important;
+            border-color: rgba(255, 107, 107, 0.4) !important;
+            color: #ff6b6b !important;
+        }
+
+        .cell.revealed {
+            background: rgba(108, 92, 231, 0.15);
+            color: #a29bfe;
+            border: 1px solid rgba(108, 92, 231, 0.25);
+        }
+
+        @keyframes cellCorrect {
+            0% { transform: scale(1); }
+            40% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes cellWrong {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* ===== 按钮 ===== */
+        .action-btn {
+            padding: 12px 36px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+
+        .action-btn:active { transform: scale(0.96); }
+
+        .btn-start {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn-start:hover {
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
+        }
+
+        .btn-restart {
+            background: rgba(255,255,255,0.08);
+            color: #aaa;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-restart:hover {
+            background: rgba(255,255,255,0.12);
+            color: #ddd;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* ===== 历史记录 ===== */
+        .history {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .history-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .history-list {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            color: #999;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .history-item .time {
+            font-weight: 700;
+            color: #a29bfe;
+        }
+
+        .history-item .size-label {
+            font-size: 11px;
+            color: #666;
+            margin-left: 4px;
+        }
+
+        /* ===== 结果弹窗 ===== */
+        .result-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .result-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px 48px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .result-overlay.show .result-card {
+            transform: scale(1);
+        }
+
+        .result-card h2 {
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .result-time {
+            font-size: 56px;
+            font-weight: 700;
+            color: #a29bfe;
+            margin: 16px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .result-time span {
+            font-size: 24px;
+            color: #888;
+        }
+
+        .result-rating {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .rating-excellent { color: #00cec9; }
+        .rating-good { color: #55efc4; }
+        .rating-average { color: #fdcb6e; }
+        .rating-slow { color: #ff7675; }
+
+        .result-detail {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        /* ===== 响应�?===== */
+        @media (max-width: 480px) {
+            .header h1 { font-size: 24px; }
+            .stat-value { font-size: 26px; }
+            .grid { gap: 4px; padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <h1>🧠 舒尔特方�?/h1>
+            <p>按顺序点击数字，锻炼注意力与反应速度</p>
+        </div>
+
+        <div class="controls">
+            <button class="size-btn active" data-size="3" onclick="setSize(3)">3×3</button>
+            <button class="size-btn" data-size="4" onclick="setSize(4)">4×4</button>
+            <button class="size-btn" data-size="5" onclick="setSize(5)">5×5</button>
+            <button class="size-btn" data-size="6" onclick="setSize(6)">6×6</button>
+            <button class="size-btn" data-size="7" onclick="setSize(7)">7×7</button>
+        </div>
+
+        <div class="controls">
+            <button class="mode-btn active" data-mode="number" onclick="setMode('number')">数字</button>
+            <button class="mode-btn" data-mode="letter" onclick="setMode('letter')">字母</button>
+            <button class="mode-btn" data-mode="color" onclick="setMode('color')">颜色</button>
+        </div>
+
+        <div class="controls">
+            <span style="font-size:12px;color:#666;margin-right:4px;">难度</span>
+            <button class="diff-btn active" data-diff="normal" onclick="setDifficulty('normal')">普�?/button>
+            <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')">硬核</button>
+        </div>
+
+        <div class="status-bar">
+            <div class="stat">
+                <div class="stat-value timer" id="timer">0.0</div>
+                <div class="stat-label">用时(�?</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="current">0</div>
+                <div class="stat-label">当前</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="total">0</div>
+                <div class="stat-label">总数</div>
+            </div>
+        </div>
+
+        <div class="hint" id="hint">点击「开始」启动训�?/div>
+        <div id="hardNote" style="font-size:11px;color:#fd79a8;margin-bottom:10px;display:none;">🔒 硬核模式：点击后方块不变色，无法区分已点与未�?/div>
+
+        <div class="grid-wrapper">
+            <div class="grid" id="grid"></div>
+        </div>
+
+        <div class="actions">
+            <button class="action-btn btn-restart" onclick="resetGame()">重置</button>
+            <button class="action-btn btn-start" id="startBtn" onclick="startGame()">开�?/button>
+        </div>
+
+        <div class="history" id="historySection" style="display:none;">
+            <div class="history-title">最近记�?/div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-card">
+            <h2>🎉 完成�?/h2>
+            <div class="result-time" id="resultTime">0.0<span>�?/span></div>
+            <div class="result-rating" id="resultRating"></div>
+            <div class="result-detail" id="resultDetail"></div>
+            <button class="action-btn btn-start" onclick="closeResult(); startGame();">再来一�?/button>
+        </div>
+    </div>
+
+    <script>
+        // ===== 配置 =====
+        const COLORS_POOL = [
+            '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#1abc9c',
+            '#3498db', '#9b59b6', '#e91e63', '#00bcd4', '#8bc34a',
+            '#ff5722', '#795548', '#607d8b', '#ff9800', '#cddc39',
+            '#4caf50', '#03a9f4', '#673ab7', '#f44336', '#009688',
+            '#ffc107', '#7c4dff', '#00e5ff', '#76ff03', '#ff1744'
+        ];
+
+        const COLOR_NAMES = [
+            '�?, '�?, '�?, '�?, '�?,
+            '�?, '�?, '�?, '天蓝', '草绿',
+            '深橙', '�?, '灰蓝', '亮橙', '黄绿',
+            '翠绿', '浅蓝', '深紫', '亮红', '墨绿',
+            '琥珀', '靛紫', '青蓝', '亮绿', '玫红'
+        ];
+
+        // ===== 状�?=====
+        let gridSize = 3;
+        let gameMode = 'number'; // number, letter, color
+        let hardMode = false; // 硬核模式：点击后方块不变�?
+        let sequence = [];
+        let currentIndex = 0;
+        let isPlaying = false;
+        let startTime = 0;
+        let timerInterval = null;
+        let history = JSON.parse(localStorage.getItem('schulteHistory') || '[]');
+
+        const grid = document.getElementById('grid');
+        const timerEl = document.getElementById('timer');
+        const currentEl = document.getElementById('current');
+        const totalEl = document.getElementById('total');
+        const hintEl = document.getElementById('hint');
+        const startBtn = document.getElementById('startBtn');
+
+        // ===== 模式切换 =====
+        function setSize(size) {
+            if (isPlaying) return;
+            gridSize = size;
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.size-btn[data-size="${size}"]`).classList.add('active');
+            resetGame();
+        }
+
+        function setMode(mode) {
+            if (isPlaying) return;
+            gameMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active');
+            hintEl.className = 'hint' + (mode !== 'number' ? ' number-mode' : '');
+            resetGame();
+        }
+
+        function setDifficulty(diff) {
+            if (isPlaying) return;
+            hardMode = diff === 'hard';
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.diff-btn[data-diff="${diff}"]`).classList.add('active');
+            document.getElementById('hardNote').style.display = hardMode ? '' : 'none';
+            resetGame();
+        }
+
+        // ===== 生成序列 =====
+        function generateSequence() {
+            const count = gridSize * gridSize;
+            if (gameMode === 'number') {
+                const arr = Array.from({ length: count }, (_, i) => i + 1);
+                shuffle(arr);
+                return arr.map(n => ({ value: n, display: String(n), id: n - 1 }));
+            } else if (gameMode === 'letter') {
+                const arr = Array.from({ length: count }, (_, i) => i);
+                shuffle(arr);
+                return arr.map((idx, i) => {
+                    const letter = String.fromCharCode(65 + idx);
+                    return { value: idx, display: letter, id: idx };
+                });
+            } else {
+                // 颜色模式：显示颜色词，但文字颜色与词义不同（Stroop效果�?
+                const indices = Array.from({ length: count }, (_, i) => i % COLORS_POOL.length);
+                shuffle(indices);
+                const textIndices = Array.from({ length: count }, (_, i) => i % COLOR_NAMES.length);
+                shuffle(textIndices);
+                // 确保文字和颜色不�?
+                for (let i = 0; i < count; i++) {
+                    if (textIndices[i] === indices[i]) {
+                        const swap = (i + 1) % count;
+                        [textIndices[i], textIndices[swap]] = [textIndices[swap], textIndices[i]];
+                    }
+                }
+                return indices.map((colorIdx, i) => ({
+                    value: i,
+                    display: COLOR_NAMES[textIndices[i]],
+                    color: COLORS_POOL[colorIdx],
+                    id: i
+                }));
+            }
+        }
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        // ===== 渲染方格 =====
+        function renderGrid() {
+            const count = gridSize * gridSize;
+            const cellSize = Math.min(70, (Math.min(window.innerWidth, 520) - 48 - gridSize * 6 - 24) / gridSize);
+
+            grid.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
+            grid.innerHTML = '';
+
+            sequence.forEach((item, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell default';
+                cell.style.width = cellSize + 'px';
+                cell.style.height = cellSize + 'px';
+                cell.style.fontSize = (cellSize * 0.4) + 'px';
+                cell.dataset.index = idx;
+
+                if (gameMode === 'color') {
+                    cell.textContent = item.display;
+                    cell.style.color = item.color;
+                } else {
+                    cell.textContent = item.display;
+                }
+
+                cell.addEventListener('click', () => onCellClick(idx));
+                cell.addEventListener('touchstart', (e) => { e.preventDefault(); onCellClick(idx); }, { passive: false });
+
+                grid.appendChild(cell);
+            });
+        }
+
+        // ===== 游戏逻辑 =====
+        function startGame() {
+            sequence = generateSequence();
+            currentIndex = 0;
+            isPlaying = true;
+            startTime = Date.now();
+
+            currentEl.textContent = '0';
+            totalEl.textContent = gridSize * gridSize;
+            startBtn.textContent = '进行�?..';
+            startBtn.style.pointerEvents = 'none';
+            startBtn.style.opacity = '0.5';
+
+            updateHint();
+            renderGrid();
+            startTimer();
+        }
+
+        function resetGame() {
+            stopTimer();
+            isPlaying = false;
+            currentIndex = 0;
+            timerEl.textContent = '0.0';
+            currentEl.textContent = '0';
+            totalEl.textContent = gridSize * gridSize;
+            hintEl.textContent = '点击「开始」启动训�?;
+            startBtn.textContent = '开�?;
+            startBtn.style.pointerEvents = '';
+            startBtn.style.opacity = '';
+
+            sequence = generateSequence();
+            renderGrid();
+            // 显示所有格子为未开始状�?
+            document.querySelectorAll('.cell').forEach(c => c.className = 'cell default');
+        }
+
+        function onCellClick(idx) {
+            if (!isPlaying) return;
+
+            const item = sequence[idx];
+            const cell = grid.children[idx];
+
+            if (item.id === currentIndex) {
+                // 正确
+                if (hardMode) {
+                    // 硬核模式：方块不变色，仅短暂缩放反馈
+                    cell.style.transform = 'scale(0.9)';
+                    setTimeout(() => { cell.style.transform = ''; }, 150);
+                } else {
+                    cell.className = 'cell correct';
+                }
+                currentIndex++;
+                currentEl.textContent = currentIndex;
+                updateHint();
+
+                if (currentIndex >= gridSize * gridSize) {
+                    gameComplete();
+                }
+            } else {
+                // 错误
+                if (hardMode) {
+                    // 硬核模式：仅抖动，不变色
+                    cell.style.animation = 'cellWrong 0.4s ease';
+                    setTimeout(() => { cell.style.animation = ''; }, 400);
+                } else {
+                    cell.classList.add('wrong');
+                    setTimeout(() => cell.classList.remove('wrong'), 400);
+                }
+            }
+        }
+
+        function updateHint() {
+            if (!isPlaying) return;
+            const count = gridSize * gridSize;
+            const prefix = hardMode ? '🔒 ' : '';
+            if (gameMode === 'number') {
+                hintEl.textContent = `${prefix}请点�? ${currentIndex + 1 > count ? '�? : currentIndex + 1}`;
+            } else if (gameMode === 'letter') {
+                hintEl.textContent = `${prefix}请点�? ${String.fromCharCode(65 + currentIndex)}`;
+            } else {
+                hintEl.textContent = `${prefix}请点击第 ${currentIndex + 1} 个`;
+            }
+        }
+
+        function gameComplete() {
+            isPlaying = false;
+            stopTimer();
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+            // 硬核模式结束时揭示所有方�?
+            if (hardMode) {
+                document.querySelectorAll('.cell').forEach(c => c.className = 'cell correct');
+            }
+
+            startBtn.textContent = '开�?;
+            startBtn.style.pointerEvents = '';
+            startBtn.style.opacity = '';
+
+            // 保存记录
+            const record = {
+                time: parseFloat(elapsed),
+                size: gridSize,
+                mode: gameMode,
+                hard: hardMode,
+                date: new Date().toLocaleDateString('zh-CN')
+            };
+            history.unshift(record);
+            if (history.length > 10) history = history.slice(0, 10);
+            localStorage.setItem('schulteHistory', JSON.stringify(history));
+            renderHistory();
+
+            // 显示结果
+            showResult(parseFloat(elapsed));
+        }
+
+        // ===== 计时�?=====
+        function startTimer() {
+            stopTimer();
+            timerInterval = setInterval(() => {
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                timerEl.textContent = elapsed;
+            }, 100);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // ===== 结果 =====
+        function showResult(time) {
+            const overlay = document.getElementById('resultOverlay');
+            const resultTime = document.getElementById('resultTime');
+            const resultRating = document.getElementById('resultRating');
+            const resultDetail = document.getElementById('resultDetail');
+
+            resultTime.innerHTML = `${time}<span>�?/span>`;
+
+            const count = gridSize * gridSize;
+            const avg = time / count;
+            const rating = getRating(avg, gameMode);
+
+            resultRating.textContent = rating.text;
+            resultRating.className = 'result-rating ' + rating.cls;
+            resultDetail.textContent = `${gridSize}×${gridSize} ${modeLabel(gameMode)}模式${hardMode ? ' · 硬核' : ''} · 平均每格 ${(avg).toFixed(2)}秒`;
+
+            overlay.classList.add('show');
+        }
+
+        function getRating(avgPerCell, mode) {
+            // 基于每格平均时间评级
+            if (avgPerCell < 0.5) return { text: '🏆 超凡！不可思议的速度�?, cls: 'rating-excellent' };
+            if (avgPerCell < 0.8) return { text: '🌟 优秀！反应非常敏�?, cls: 'rating-excellent' };
+            if (avgPerCell < 1.2) return { text: '👍 良好！高于平均水�?, cls: 'rating-good' };
+            if (avgPerCell < 1.8) return { text: '😊 一般，继续练习会更�?, cls: 'rating-average' };
+            return { text: '🐢 需要更多练习，加油�?, cls: 'rating-slow' };
+        }
+
+        function modeLabel(mode) {
+            return { number: '数字', letter: '字母', color: '颜色' }[mode];
+        }
+
+        function closeResult() {
+            document.getElementById('resultOverlay').classList.remove('show');
+        }
+
+        // ===== 历史记录 =====
+        function renderHistory() {
+            const section = document.getElementById('historySection');
+            const list = document.getElementById('historyList');
+
+            if (history.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = '';
+            list.innerHTML = history.slice(0, 8).map(r => `
+                <div class="history-item">
+                    <span class="time">${r.time}s</span>
+                    <span class="size-label">${r.size}×${r.size} ${modeLabel(r.mode || 'number')}${r.hard ? ' 硬核' : ''}</span>
+                </div>
+            `).join('');
+        }
+
+        // ===== 初始�?=====
+        totalEl.textContent = gridSize * gridSize;
+        sequence = generateSequence();
+        renderGrid();
+        renderHistory();
+
+        // 窗口大小变化时重新渲�?
+        window.addEventListener('resize', () => {
+            if (!isPlaying) renderGrid();
+        });
+    </script>
+</body>
+</html>

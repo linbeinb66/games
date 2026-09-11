@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>速算挑战 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 480px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #00cec9; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 28px; margin: 20px 0; }
+        .stat-val { font-size: 32px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #00cec9; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+        .difficulty-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+        .diff-btn {
+            padding: 6px 16px; border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px; background: rgba(255,255,255,0.05);
+            color: #999; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .diff-btn:hover { background: rgba(255,255,255,0.1); color: #ccc; }
+        .diff-btn.active { background: rgba(0,206,201,0.2); color: #00cec9; border-color: rgba(0,206,201,0.4); }
+        .question-area { margin: 30px 0; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .question {
+            font-size: 48px; font-weight: 800; color: #fff;
+            letter-spacing: 4px; font-variant-numeric: tabular-nums;
+        }
+        .question .op { color: #00cec9; margin: 0 8px; }
+        .answer-area { margin: 20px 0; }
+        .answer-input {
+            width: 200px; padding: 14px 20px; font-size: 32px;
+            font-weight: 700; text-align: center;
+            font-variant-numeric: tabular-nums;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
+            border-radius: 14px; color: #fff; outline: none;
+            transition: border-color 0.2s;
+        }
+        .answer-input:focus { border-color: #00cec9; }
+        .answer-input::placeholder { color: #555; font-size: 18px; letter-spacing: 2px; }
+        .feedback { font-size: 20px; font-weight: 700; margin: 12px 0; min-height: 28px; }
+        .feedback.correct { color: #55efc4; }
+        .feedback.wrong { color: #ff6b6b; }
+        .progress-bar { width: 100%; max-width: 360px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; margin: 16px auto; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #00cec9, #81ecec); border-radius: 2px; transition: width 0.3s; }
+        .actions { display: flex; justify-content: center; gap: 12px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #00cec9, #0984e3);
+            color: #fff; box-shadow: 0 4px 15px rgba(0,206,201,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(0,206,201,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+        .overlay {
+            position: fixed; top:0;left:0;right:0;bottom:0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 26px; color: #fff; margin-bottom: 12px; }
+        .result-big { font-size: 56px; font-weight: 700; color: #00cec9; margin: 12px 0; }
+        .result-big span { font-size: 20px; color: #888; }
+        .result-sub { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .best-record { font-size: 13px; color: #888; margin-bottom: 20px; }
+        .start-screen { margin: 40px 0; }
+        .start-screen p { font-size: 14px; color: #999; line-height: 1.8; margin-bottom: 20px; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        .shake { animation: shake 0.3s ease; }
+        @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
+        .pop { animation: pop 0.3s ease; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>⚡ 速算挑战</h1>
+        <p>快速心算，挑战你的计算速度</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val" id="scoreVal">0</div><div class="stat-label">得分</div></div>
+        <div><div class="stat-val accent" id="timeVal">60</div><div class="stat-label">剩余题数</div></div>
+        <div><div class="stat-val" id="comboVal">0</div><div class="stat-label">连击</div></div>
+    </div>
+    <div id="gameArea">
+        <div class="start-screen" id="startScreen">
+            <p>在限定时间内尽可能快地完成心算题目。<br>连续答对可获得连击加分！</p>
+            <div class="difficulty-bar">
+                <button class="diff-btn active" data-diff="easy" onclick="setDiff(this)">简单</button>
+                <button class="diff-btn" data-diff="medium" onclick="setDiff(this)">中等</button>
+                <button class="diff-btn" data-diff="hard" onclick="setDiff(this)">困难</button>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="startGame()">开始挑战</button>
+            </div>
+        </div>
+        <div id="playArea" style="display:none">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:100%"></div></div>
+            <div class="question-area">
+                <div class="question" id="questionEl"></div>
+            </div>
+            <div class="answer-area">
+                <input type="number" class="answer-input" id="answerInput" placeholder="?" autocomplete="off">
+            </div>
+            <div class="feedback" id="feedback"></div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2>挑战结束</h2>
+        <div class="result-big" id="resultScore">0<span>题</span></div>
+        <div class="result-sub" id="resultDetail"></div>
+        <div class="best-record" id="bestRecord"></div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="startGame()">再来一次</button>
+            <button class="btn btn-secondary" onclick="backToHome()">返回列表</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let difficulty = 'easy';
+let score = 0, combo = 0, bestCombo = 0, timeLeft = 60;
+let timer = null, currentAnswer = 0, totalQ = 0, correctQ = 0;
+
+function setDiff(btn) {
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    difficulty = btn.dataset.diff;
+}
+
+function genQuestion() {
+    let a, b, op, answer;
+    if (difficulty === 'easy') {
+        a = Math.floor(Math.random() * 20) + 1;
+        b = Math.floor(Math.random() * 20) + 1;
+        op = Math.random() > 0.5 ? '+' : '-';
+        if (op === '-' && a < b) [a, b] = [b, a];
+        answer = op === '+' ? a + b : a - b;
+    } else if (difficulty === 'medium') {
+        const ops = ['+', '-', '×'];
+        op = ops[Math.floor(Math.random() * ops.length)];
+        if (op === '×') {
+            a = Math.floor(Math.random() * 12) + 2;
+            b = Math.floor(Math.random() * 12) + 2;
+            answer = a * b;
+        } else {
+            a = Math.floor(Math.random() * 50) + 10;
+            b = Math.floor(Math.random() * 50) + 10;
+            if (op === '-' && a < b) [a, b] = [b, a];
+            answer = op === '+' ? a + b : a - b;
+        }
+    } else {
+        const ops = ['+', '-', '×', '÷'];
+        op = ops[Math.floor(Math.random() * ops.length)];
+        if (op === '×') {
+            a = Math.floor(Math.random() * 20) + 2;
+            b = Math.floor(Math.random() * 20) + 2;
+            answer = a * b;
+        } else if (op === '÷') {
+            b = Math.floor(Math.random() * 12) + 2;
+            answer = Math.floor(Math.random() * 12) + 2;
+            a = b * answer;
+        } else {
+            a = Math.floor(Math.random() * 100) + 20;
+            b = Math.floor(Math.random() * 100) + 20;
+            if (op === '-' && a < b) [a, b] = [b, a];
+            answer = op === '+' ? a + b : a - b;
+        }
+    }
+    currentAnswer = answer;
+    return `${a} <span class="op">${op}</span> ${b}`;
+}
+
+function startGame() {
+    document.getElementById('resultOverlay').classList.remove('show');
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('playArea').style.display = 'block';
+    score = 0; combo = 0; bestCombo = 0; timeLeft = 60; totalQ = 0; correctQ = 0;
+    updateStats();
+    nextQuestion();
+    const input = document.getElementById('answerInput');
+    input.value = '';
+    input.focus();
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timeVal').textContent = timeLeft;
+        document.getElementById('progressFill').style.width = (timeLeft / 60 * 100) + '%';
+        if (timeLeft <= 0) endGame();
+    }, 1000);
+}
+
+function nextQuestion() {
+    document.getElementById('questionEl').innerHTML = genQuestion();
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+    const input = document.getElementById('answerInput');
+    input.value = '';
+    input.focus();
+}
+
+function checkAnswer() {
+    const input = document.getElementById('answerInput');
+    const val = parseInt(input.value);
+    if (isNaN(val)) return;
+
+    totalQ++;
+    const fb = document.getElementById('feedback');
+    const qEl = document.getElementById('questionEl');
+
+    if (val === currentAnswer) {
+        correctQ++;
+        combo++;
+        if (combo > bestCombo) bestCombo = combo;
+        const bonus = Math.min(combo, 10);
+        score += 10 + bonus;
+        fb.textContent = combo > 1 ? `+${10 + bonus} 连击×${combo}!` : '+10';
+        fb.className = 'feedback correct';
+        qEl.classList.add('pop');
+        setTimeout(() => qEl.classList.remove('pop'), 300);
+        setTimeout(nextQuestion, 300);
+    } else {
+        combo = 0;
+        fb.textContent = `�?答案: ${currentAnswer}`;
+        fb.className = 'feedback wrong';
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 300);
+        setTimeout(nextQuestion, 800);
+    }
+    updateStats();
+}
+
+function updateStats() {
+    document.getElementById('scoreVal').textContent = score;
+    document.getElementById('timeVal').textContent = timeLeft;
+    document.getElementById('comboVal').textContent = combo;
+}
+
+function endGame() {
+    clearInterval(timer);
+    document.getElementById('playArea').style.display = 'none';
+    const accuracy = totalQ > 0 ? Math.round(correctQ / totalQ * 100) : 0;
+    document.getElementById('resultScore').innerHTML = score + '<span>题</span>';
+    document.getElementById('resultDetail').textContent =
+        `答题 ${totalQ} · 正确 ${correctQ} · 正确率${accuracy}% · 最长连击${bestCombo}}`;
+
+    const key = 'quickmath_best_' + difficulty;
+    const best = localStorage.getItem(key) || 0;
+    if (score > best) {
+        localStorage.setItem(key, score);
+        document.getElementById('bestRecord').textContent = '🎉 新纪录！';
+    } else {
+        document.getElementById('bestRecord').textContent = `${difficulty === 'easy' ? '简单' : difficulty === 'medium' ? '中等' : '困难'}模式最高：${best} 分`;
+    }
+    document.getElementById('resultOverlay').classList.add('show');
+}
+
+function backToHome() { location.href = '../brain-games.html'; }
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('answerInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') checkAnswer();
+    });
+});
+</script>
+</body>
+</html

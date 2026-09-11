@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>数字记忆 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 480px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #fd79a8; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 28px; margin: 20px 0; }
+        .stat-val { font-size: 32px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #fd79a8; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+
+        .phase { margin: 24px 0; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        /* 记忆阶段 */
+        .number-display {
+            font-size: 56px; font-weight: 700; color: #fff;
+            letter-spacing: 8px; font-variant-numeric: tabular-nums;
+            margin-bottom: 16px; animation: fadeIn 0.3s ease;
+        }
+        .countdown-bar {
+            width: 200px; height: 4px; background: rgba(255,255,255,0.1);
+            border-radius: 2px; overflow: hidden; margin-top: 12px;
+        }
+        .countdown-fill {
+            height: 100%; background: linear-gradient(90deg, #fd79a8, #e84393);
+            border-radius: 2px; transition: width 0.1s linear;
+        }
+        .phase-hint { font-size: 14px; color: #888; margin-top: 8px; }
+
+        /* 输入阶段 */
+        .input-area { animation: fadeIn 0.3s ease; }
+        .number-input {
+            width: 280px; padding: 14px 20px; font-size: 28px;
+            font-weight: 700; text-align: center; letter-spacing: 6px;
+            font-variant-numeric: tabular-nums;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
+            border-radius: 14px; color: #fff; outline: none;
+            transition: border-color 0.2s;
+        }
+        .number-input:focus { border-color: #fd79a8; }
+        .number-input::placeholder { color: #555; letter-spacing: 2px; font-size: 18px; }
+
+        /* 结果 */
+        .result-compare {
+            display: flex; gap: 20px; justify-content: center; align-items: center;
+            margin: 16px 0; animation: fadeIn 0.3s ease;
+        }
+        .compare-item { text-align: center; }
+        .compare-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+        .compare-num { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .compare-num.correct { color: #55efc4; }
+        .compare-num.wrong { color: #ff6b6b; }
+        .compare-arrow { font-size: 20px; color: #555; }
+
+        .actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: #fff; box-shadow: 0 4px 15px rgba(253,121,168,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(253,121,168,0.5); }
+        .btn-primary:disabled { opacity: 0.5; cursor: default; }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+
+        .level-indicator {
+            display: flex; justify-content: center; gap: 6px; margin-bottom: 16px;
+        }
+        .level-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); transition: background 0.3s;
+        }
+        .level-dot.done { background: #55efc4; }
+        .level-dot.current { background: #fd79a8; }
+        .level-dot.fail { background: #ff6b6b; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>🔢 数字记忆</h1>
+        <p>记住数字并输入，挑战你的数字记忆极限</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="level">1</div><div class="stat-label">关卡</div></div>
+        <div><div class="stat-val" id="best">0</div><div class="stat-label">最高位数</div></div>
+        <div><div class="stat-val" id="lives">❤️❤️❤️</div><div class="stat-label">生命</div></div>
+    </div>
+    <div class="level-indicator" id="levelDots"></div>
+    <div class="phase" id="phase">
+        <div class="phase-hint">点击「开始」启动训练</div>
+    </div>
+    <div class="actions">
+        <button class="btn btn-secondary" onclick="resetGame()">重置</button>
+        <button class="btn btn-primary" id="startBtn" onclick="startGame()">开始</button>
+    </div>
+</div>
+<script>
+let currentLevel = 1, startDigits = 4, lives = 3;
+let currentNumber = '', phase = 'idle'; // idle, memorize, input, result
+let best = parseInt(localStorage.getItem('numMemBest') || '0');
+let levelResults = []; // 'pass', 'fail', 'current'
+
+const phaseEl = document.getElementById('phase');
+const levelEl = document.getElementById('level');
+const bestEl = document.getElementById('best');
+const livesEl = document.getElementById('lives');
+const startBtn = document.getElementById('startBtn');
+const dotsEl = document.getElementById('levelDots');
+
+bestEl.textContent = best;
+
+function generateNumber(digits) {
+    let num = '';
+    for (let i = 0; i < digits; i++) {
+        num += i === 0 ? Math.floor(Math.random() * 9) + 1 : Math.floor(Math.random() * 10);
+    }
+    return num;
+}
+
+function startGame() {
+    currentLevel = 1;
+    lives = 3;
+    levelResults = [];
+    updateLives();
+    updateDots();
+    nextRound();
+    startBtn.textContent = '进行中...';
+    startBtn.style.opacity = '0.5';
+    startBtn.style.pointerEvents = 'none';
+}
+
+function nextRound() {
+    const digits = startDigits + currentLevel - 1;
+    currentNumber = generateNumber(digits);
+    levelEl.textContent = currentLevel;
+    updateDots();
+    showMemorizePhase(digits);
+}
+
+function showMemorizePhase(digits) {
+    phase = 'memorize';
+    const showTime = 1000 + digits * 350; // More time for more digits
+
+    phaseEl.innerHTML = `
+        <div class="number-display" id="numDisplay">${currentNumber}</div>
+        <div class="countdown-bar"><div class="countdown-fill" id="countdownFill" style="width:100%"></div></div>
+        <div class="phase-hint">记住这个 ${digits} 位数</div>
+    `;
+
+    // Countdown animation
+    const fill = document.getElementById('countdownFill');
+    const startTime = Date.now();
+    const tick = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const pct = Math.max(0, 100 - (elapsed / showTime) * 100);
+        fill.style.width = pct + '%';
+        if (elapsed >= showTime) clearInterval(tick);
+    }, 50);
+
+    setTimeout(() => {
+        if (phase === 'memorize') showInputPhase(digits);
+    }, showTime);
+}
+
+function showInputPhase(digits) {
+    phase = 'input';
+    phaseEl.innerHTML = `
+        <div class="input-area">
+            <div class="phase-hint" style="margin-bottom:16px;">输入你记住的 ${digits} 位数</div>
+            <input class="number-input" id="numInput" type="text" inputmode="numeric"
+                   placeholder="输入数字" maxlength="${digits + 2}" autocomplete="off" autofocus>
+            <div style="margin-top:16px;">
+                <button class="btn btn-primary" onclick="submitAnswer()">确认</button>
+            </div>
+        </div>
+    `;
+    const input = document.getElementById('numInput');
+    input.focus();
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') submitAnswer();
+    });
+    input.addEventListener('input', () => {
+        input.value = input.value.replace(/[^0-9]/g, '');
+    });
+}
+
+function submitAnswer() {
+    if (phase !== 'input') return;
+    const input = document.getElementById('numInput');
+    const answer = input.value.trim();
+    if (!answer) return;
+
+    const correct = answer === currentNumber;
+    showResultPhase(correct, answer);
+}
+
+function showResultPhase(correct, answer) {
+    phase = 'result';
+
+    if (correct) {
+        levelResults.push('pass');
+        if (currentNumber.length > best) {
+            best = currentNumber.length;
+            localStorage.setItem('numMemBest', best);
+            bestEl.textContent = best;
+        }
+    } else {
+        levelResults.push('fail');
+        lives--;
+        updateLives();
+    }
+    updateDots();
+
+    phaseEl.innerHTML = `
+        <div class="result-compare">
+            <div class="compare-item">
+                <div class="compare-label">正确答案</div>
+                <div class="compare-num correct">${currentNumber}</div>
+            </div>
+            <div class="compare-arrow">←</div>
+            <div class="compare-item">
+                <div class="compare-label">你的输入</div>
+                <div class="compare-num ${correct ? 'correct' : 'wrong'}">${answer}</div>
+            </div>
+        </div>
+        <div class="phase-hint" style="margin-top:8px; color:${correct ? '#55efc4' : '#ff6b6b'}">
+            ${correct ? '✅ 完全正确！' : '❌?记忆有误'}
+        </div>
+        <div style="margin-top:16px;">
+            <button class="btn btn-primary" onclick="continueGame()">${lives > 0 ? '下一步' : '查看结果'}</button>
+        </div>
+    `;
+}
+
+function continueGame() {
+    if (lives <= 0) {
+        gameOver();
+        return;
+    }
+    if (levelResults[levelResults.length - 1] === 'pass') {
+        currentLevel++;
+    }
+    nextRound();
+}
+
+function gameOver() {
+    phase = 'idle';
+    const maxDigits = startDigits + currentLevel - 2;
+    phaseEl.innerHTML = `
+        <div style="animation:fadeIn 0.3s ease">
+            <div style="font-size:48px;margin-bottom:12px;">😵</div>
+            <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;">游戏结束</div>
+            <div style="font-size:14px;color:#888;margin-bottom:4px;">最高记忆位数 <span style="color:#fd79a8;font-weight:700">${best}</span></div>
+            <div style="font-size:14px;color:#888;">到达第${currentLevel} 关</div>
+        </div>
+    `;
+    startBtn.textContent = '重新开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+}
+
+function updateLives() {
+    livesEl.textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, 3 - lives));
+}
+
+function updateDots() {
+    let html = '';
+    const total = Math.max(currentLevel + 1, 8);
+    for (let i = 0; i < total; i++) {
+        const result = levelResults[i];
+        let cls = 'level-dot';
+        if (result === 'pass') cls += ' done';
+        else if (result === 'fail') cls += ' fail';
+        else if (i === currentLevel - 1) cls += ' current';
+        html += `<div class="${cls}"></div>`;
+    }
+    dotsEl.innerHTML = html;
+}
+
+function resetGame() {
+    phase = 'idle';
+    currentLevel = 1;
+    lives = 3;
+    levelResults = [];
+    levelEl.textContent = '1';
+    updateLives();
+    updateDots();
+    phaseEl.innerHTML = '<div class="phase-hint">点击「开始」启动训练</div>';
+    startBtn.textContent = '开始';
+    startBtn.style.opacity = '';
+    startBtn.style.pointerEvents = '';
+}
+</script>
+</body>
+</html>

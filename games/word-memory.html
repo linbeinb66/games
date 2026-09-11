@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>词语记忆 - 大脑训练</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: center; color: #e0e0e0;
+        }
+        .app { width: 520px; max-width: 96vw; text-align: center; }
+        .back-link { display: inline-block; margin-bottom: 16px; color: #888; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+        .back-link:hover { color: #fd79a8; }
+        .header h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #888; }
+        .stats { display: flex; justify-content: center; gap: 28px; margin: 20px 0; }
+        .stat-val { font-size: 32px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        .stat-val.accent { color: #fd79a8; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+        .hint { font-size: 15px; font-weight: 600; color: #fd79a8; margin-bottom: 16px; min-height: 24px; }
+
+        .word-display {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            margin: 20px 0; min-height: 60px; padding: 20px;
+            background: rgba(255,255,255,0.03); border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .word-tag {
+            padding: 8px 18px; border-radius: 10px;
+            background: rgba(253,121,168,0.15); border: 1px solid rgba(253,121,168,0.3);
+            color: #fd79a8; font-size: 16px; font-weight: 600;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+        .word-options {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            margin: 20px 0;
+        }
+        .word-opt {
+            padding: 10px 20px; border-radius: 12px;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.1);
+            color: #ccc; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; user-select: none;
+        }
+        .word-opt:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .word-opt:active { transform: scale(0.96); }
+        .word-opt.selected {
+            background: rgba(253,121,168,0.2); border-color: rgba(253,121,168,0.5);
+            color: #fd79a8;
+        }
+        .word-opt.correct {
+            background: rgba(85,239,196,0.2); border-color: rgba(85,239,196,0.5);
+            color: #55efc4; pointer-events: none;
+        }
+        .word-opt.wrong {
+            background: rgba(255,107,107,0.2); border-color: rgba(255,107,107,0.5);
+            color: #ff6b6b; pointer-events: none;
+        }
+        .word-opt.missed {
+            border-color: rgba(253,121,168,0.5); border-style: dashed;
+            color: #fd79a8; pointer-events: none;
+        }
+        .word-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+        .countdown-bar {
+            width: 100%; max-width: 360px; height: 4px;
+            background: rgba(255,255,255,0.08); border-radius: 2px;
+            margin: 12px auto; overflow: hidden;
+        }
+        .countdown-fill {
+            height: 100%; background: linear-gradient(90deg, #fd79a8, #e84393);
+            border-radius: 2px; transition: width 0.1s linear;
+        }
+
+        .actions { display: flex; justify-content: center; gap: 12px; }
+        .btn {
+            padding: 11px 32px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: #fff; box-shadow: 0 4px 15px rgba(253,121,168,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(253,121,168,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+
+        .overlay {
+            position: fixed; top:0;left:0;right:0;bottom:0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 36px 44px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .overlay.show .result-card { transform: scale(1); }
+        .result-card h2 { font-size: 26px; color: #fff; margin-bottom: 12px; }
+        .result-big { font-size: 56px; font-weight: 700; color: #fd79a8; margin: 12px 0; }
+        .result-big span { font-size: 20px; color: #888; }
+        .result-sub { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .best-record { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+        .start-screen { margin: 40px 0; }
+        .start-screen p { font-size: 14px; color: #999; line-height: 1.8; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <a class="back-link" href="../brain-games.html">← 返回游戏列表</a>
+    <div class="header">
+        <h1>📝 词语记忆</h1>
+        <p>记住显示的词语，从选项中选出所有正确的。</p>
+    </div>
+    <div class="stats">
+        <div><div class="stat-val accent" id="levelVal">1</div><div class="stat-label">关卡</div></div>
+        <div><div class="stat-val" id="wordCountVal">3</div><div class="stat-label">词语数</div></div>
+        <div><div class="stat-val" id="bestVal">0</div><div class="stat-label">最高关卡</div></div>
+    </div>
+    <div class="hint" id="hintText">点击开始</div>
+    <div class="countdown-bar"><div class="countdown-fill" id="countdownFill" style="width:100%"></div></div>
+    <div class="word-display" id="wordDisplay"></div>
+    <div class="word-options" id="wordOptions"></div>
+    <div id="gameArea">
+        <div class="start-screen" id="startScreen">
+            <p>屏幕会显示一组词语，记忆后在选项。<br>选出所有刚才出现过的词语。难度逐级递增。</p>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="startGame()">开始游戏</button>
+            </div>
+        </div>
+        <div id="playArea" style="display:none">
+            <div class="actions" style="margin-top:12px">
+                <button class="btn btn-primary" id="submitBtn" onclick="submitAnswer()" style="display:none">确认提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2>游戏结束</h2>
+        <div class="result-big" id="resultLevel">1<span>关</span></div>
+        <div class="result-sub" id="resultDetail"></div>
+        <div class="best-record" id="bestRecord"></div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="startGame()">再来一次</button>
+            <button class="btn btn-secondary" onclick="backToHome()">返回列表</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const WORD_POOL = [
+    '太阳','月亮','星星','大海','高山','森林','河流','花园','城堡','桥梁',
+    '钢琴','画笔','风筝','蜡烛','钥匙','镜子','时钟','书本','灯塔','帆船',
+    '雪花','彩虹','闪电','云朵','瀑布','沙漠','草原','冰川','火山','岛屿',
+    '苹果','葡萄','樱桃','柠檬','蜜桃','竹子','玫瑰','百合','兰花','菊花',
+    '狮子','老虎','熊猫','海豚','蝴蝶','老鹰','蜜蜂','松鼠','企鹅','鲸鱼',
+    '钻石','琥珀','翡翠','珍珠','水晶','丝绸','陶瓷','青铜','水墨','油画',
+    '宇宙','银河','黑洞','流星','极光','日食','潮汐','季风','雷电','霞光',
+    '诗歌','童话','传奇','寓言','史诗','谜语','谚语','颂歌','散文','小说'
+];
+
+let level = 1, currentWords = [], selectedWords = new Set();
+let bestLevel = 0, phase = 'idle', countdownTimer = null;
+
+function getWordCount() { return Math.min(2 + level, 10); }
+function getOptionCount() { return Math.min(getWordCount() + 3, 14); }
+function getShowTime() { return Math.min(2000 + level * 500, 5000); }
+
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function pickWords(count) {
+    const shuffled = shuffle(WORD_POOL);
+    return shuffled.slice(0, count);
+}
+
+function startGame() {
+    document.getElementById('resultOverlay').classList.remove('show');
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('playArea').style.display = 'block';
+    level = 1;
+    bestLevel = parseInt(localStorage.getItem('wordmem_best') || '0');
+    document.getElementById('bestVal').textContent = bestLevel;
+    startLevel();
+}
+
+function startLevel() {
+    phase = 'memorize';
+    selectedWords = new Set();
+    const wordCount = getWordCount();
+    const optCount = getOptionCount();
+    currentWords = pickWords(Math.max(wordCount, optCount));
+    const showWords = currentWords.slice(0, wordCount);
+    const allOptions = currentWords.slice(0, optCount);
+
+    updateStats();
+    document.getElementById('hintText').textContent = '记住这些词语...';
+    document.getElementById('submitBtn').style.display = 'none';
+
+    // Show words
+    const display = document.getElementById('wordDisplay');
+    display.innerHTML = '';
+    showWords.forEach((w, i) => {
+        setTimeout(() => {
+            const tag = document.createElement('span');
+            tag.className = 'word-tag';
+            tag.textContent = w;
+            display.appendChild(tag);
+        }, i * 150);
+    });
+
+    // Countdown bar
+    const showTime = getShowTime();
+    const fill = document.getElementById('countdownFill');
+    fill.style.width = '100%';
+    let elapsed = 0;
+    const interval = 50;
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+        elapsed += interval;
+        fill.style.width = Math.max(0, (1 - elapsed / showTime) * 100) + '%';
+        if (elapsed >= showTime) {
+            clearInterval(countdownTimer);
+            showOptions(allOptions, wordCount);
+        }
+    }, interval);
+}
+
+function showOptions(options, correctCount) {
+    phase = 'select';
+    document.getElementById('hintText').textContent = `选出刚才记忆的${correctCount} 个词语`;
+    document.getElementById('submitBtn').style.display = 'inline-block';
+    document.getElementById('countdownFill').style.width = '0%';
+
+    // Hide word display
+    document.getElementById('wordDisplay').innerHTML = '';
+
+    // Show shuffled options
+    const container = document.getElementById('wordOptions');
+    container.innerHTML = '';
+    const shuffled = shuffle(options);
+    shuffled.forEach(w => {
+        const opt = document.createElement('div');
+        opt.className = 'word-opt';
+        opt.textContent = w;
+        opt.onclick = () => toggleWord(w, opt);
+        container.appendChild(opt);
+    });
+}
+
+function toggleWord(word, el) {
+    if (phase !== 'select') return;
+    if (selectedWords.has(word)) {
+        selectedWords.delete(word);
+        el.classList.remove('selected');
+    } else {
+        selectedWords.add(word);
+        el.classList.add('selected');
+    }
+}
+
+function submitAnswer() {
+    if (phase !== 'select') return;
+    phase = 'result';
+    document.getElementById('submitBtn').style.display = 'none';
+
+    const wordCount = getWordCount();
+    const correctWords = currentWords.slice(0, wordCount);
+    const opts = document.querySelectorAll('.word-opt');
+
+    let correct = 0, wrong = 0, missed = 0;
+
+    opts.forEach(opt => {
+        const w = opt.textContent;
+        const isCorrect = correctWords.includes(w);
+        const isSelected = selectedWords.has(w);
+
+        if (isSelected && isCorrect) {
+            opt.classList.remove('selected');
+            opt.classList.add('correct');
+            correct++;
+        } else if (isSelected && !isCorrect) {
+            opt.classList.remove('selected');
+            opt.classList.add('wrong');
+            wrong++;
+        } else if (!isSelected && isCorrect) {
+            opt.classList.add('missed');
+            missed++;
+        } else {
+            opt.classList.add('disabled');
+        }
+    });
+
+    const allCorrect = correct === wordCount && wrong === 0;
+
+    if (allCorrect) {
+        document.getElementById('hintText').textContent = '完美！进入下一关...';
+        level++;
+        setTimeout(startLevel, 1200);
+    } else {
+        document.getElementById('hintText').textContent = `正确 ${correct} · 遗漏 ${missed} · 错选${wrong}`;
+        setTimeout(endGame, 2000);
+    }
+}
+
+function updateStats() {
+    document.getElementById('levelVal').textContent = level;
+    document.getElementById('wordCountVal').textContent = getWordCount();
+    document.getElementById('bestVal').textContent = bestLevel;
+}
+
+function endGame() {
+    clearInterval(countdownTimer);
+    const reached = level;
+    if (reached > bestLevel) {
+        bestLevel = reached;
+        localStorage.setItem('wordmem_best', bestLevel);
+        document.getElementById('bestRecord').textContent = '🎉 新纪录！';
+    } else {
+        document.getElementById('bestRecord').textContent = `历史最高：第${bestLevel} 关`;
+    }
+    document.getElementById('resultLevel').innerHTML = (reached - 1) + '<span>关</span>';
+    document.getElementById('resultDetail').textContent =
+        `到达第${reached} 关 · 记忆 ${getWordCount()} 个词语`;
+    document.getElementById('resultOverlay').classList.add('show');
+}
+
+function backToHome() { location.href = '../brain-games.html'; }
+</script>
+</body>
+</html>

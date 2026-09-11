@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>大脑训练 - 游戏集合</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; color: #e0e0e0;
+            padding: 40px 20px;
+        }
+        .container { max-width: 720px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 36px; color: #fff; margin-bottom: 8px; }
+        .header p { font-size: 14px; color: #888; line-height: 1.6; }
+        .games {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .game-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .game-card:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        .game-card:hover::before { opacity: 1; }
+        .game-icon { font-size: 48px; line-height: 1; }
+        .game-title { font-size: 18px; font-weight: 700; color: #fff; }
+        .game-desc { font-size: 12px; color: #888; line-height: 1.5; }
+        .game-tag {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.06);
+            color: #aaa;
+            letter-spacing: 0.5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 12px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🧠 大脑训练</h1>
+        <p>每天坚持训练，提升注意力、记忆力和反应速度</p>
+    </div>
+    <div class="games">
+        <a class="game-card" style="--accent:#fd79a8" href="games/schulte.html">
+            <div class="game-icon">🎯</div>
+            <div class="game-title">舒尔特方格</div>
+            <div class="game-desc">按顺序点击数字，训练视觉搜索与注意力集中</div>
+            <div class="game-tag">注意力</div>
+        </a>
+        <a class="game-card" style="--accent:#a29bfe" href="games/memory-cards.html">
+            <div class="game-icon">🃏</div>
+            <div class="game-title">记忆翻牌</div>
+            <div class="game-desc">翻开卡牌寻找配对，锻炼短期视觉记忆</div>
+            <div class="game-tag">视觉记忆</div>
+        </a>
+        <a class="game-card" style="--accent:#55efc4" href="games/sequence-memory.html">
+            <div class="game-icon">🎵</div>
+            <div class="game-title">序列记忆</div>
+            <div class="game-desc">记住并重复递增的颜色序列，挑战工作记忆容量</div>
+            <div class="game-tag">工作记忆</div>
+        </a>
+        <a class="game-card" style="--accent:#74b9ff" href="games/number-memory.html">
+            <div class="game-icon">🔢</div>
+            <div class="game-title">数字记忆</div>
+            <div class="game-desc">记忆并复现递增长度的数字，测试数字广度</div>
+            <div class="game-tag">数字广度</div>
+        </a>
+        <a class="game-card" style="--accent:#ffeaa7" href="games/pomodoro.html">
+            <div class="game-icon">🍅</div>
+            <div class="game-title">番茄时钟</div>
+            <div class="game-desc">25分钟专注 + 5分钟休息，科学管理注意力</div>
+            <div class="game-tag">专注力</div>
+        </a>
+        <a class="game-card" style="--accent:#fab1a0" href="games/2048.html">
+            <div class="game-icon">2048</div>
+            <div class="game-title">2048</div>
+            <div class="game-desc">滑动合并数字，训练空间推理与策略规划</div>
+            <div class="game-tag">策略思维</div>
+        </a>
+        <a class="game-card" style="--accent:#e17055" href="games/stroop.html">
+            <div class="game-icon">🧪</div>
+            <div class="game-title">斯特鲁普测试</div>
+            <div class="game-desc">识别文字颜色忽略内容，训练认知抑制力</div>
+            <div class="game-tag">认知灵活性</div>
+        </a>
+        <a class="game-card" style="--accent:#00cec9" href="games/quick-math.html">
+            <div class="game-icon">⚡</div>
+            <div class="game-title">速算挑战</div>
+            <div class="game-desc">限时心算答题，提升计算速度与准确性</div>
+            <div class="game-tag">计算力</div>
+        </a>
+        <a class="game-card" style="--accent:#fdcb6e" href="games/reaction.html">
+            <div class="game-icon">👆</div>
+            <div class="game-title">反应速度</div>
+            <div class="game-desc">看到信号立刻点击，测试你的反应时间</div>
+            <div class="game-tag">反应力</div>
+        </a>
+        <a class="game-card" style="--accent:#a29bfe" href="games/path-memory.html">
+            <div class="game-icon">🗺️</div>
+            <div class="game-title">路径记忆</div>
+            <div class="game-desc">记住格子亮起顺序，训练空间序列记忆</div>
+            <div class="game-tag">空间记忆</div>
+        </a>
+        <a class="game-card" style="--accent:#fd79a8" href="games/word-memory.html">
+            <div class="game-icon">📝</div>
+            <div class="game-title">词语记忆</div>
+            <div class="game-desc">记忆词语并从干扰项中选出，锻炼词汇记忆</div>
+            <div class="game-tag">词汇记忆</div>
+        </a>
+    </div>
+    <div class="footer">坚持每天训练 10 分钟，持续提升大脑能力</div>
+</div>
+</body>
+</html>
